@@ -1,0 +1,744 @@
+2026-05-12 19:39:50 | INFO | ============================================================
+2026-05-12 19:39:50 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-12 19:39:50 | INFO | ============================================================
+2026-05-12 19:39:51 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-12 19:39:51 | INFO | Extraindo ano 2014...
+2026-05-12 19:39:51 | ERROR | 
+Pasta não encontrada para o ano 2014: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/raw/microdados_enade_2014_LGPD
+Estrutura esperada dentro de data/raw/:
+  microdados_enade_2014_LGPD/  (para 2014)
+  microdados_enade_2017_LGPD/  (para 2017)
+  microdados_enade_2021/        (para 2021)
+
+2026-05-12 19:39:51 | WARNING | Pulando o ano 2014.
+2026-05-12 19:39:51 | INFO | Extraindo ano 2017...
+2026-05-12 19:39:51 | ERROR | 
+Pasta não encontrada para o ano 2017: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/raw/microdados_enade_2017_LGPD
+Estrutura esperada dentro de data/raw/:
+  microdados_enade_2014_LGPD/  (para 2014)
+  microdados_enade_2017_LGPD/  (para 2017)
+  microdados_enade_2021/        (para 2021)
+
+2026-05-12 19:39:51 | WARNING | Pulando o ano 2017.
+2026-05-12 19:39:51 | INFO | Extraindo ano 2021...
+2026-05-12 19:39:51 | ERROR | 
+Pasta não encontrada para o ano 2021: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/raw/microdados_enade_2021
+Estrutura esperada dentro de data/raw/:
+  microdados_enade_2014_LGPD/  (para 2014)
+  microdados_enade_2017_LGPD/  (para 2017)
+  microdados_enade_2021/        (para 2021)
+
+2026-05-12 19:39:51 | WARNING | Pulando o ano 2021.
+2026-05-12 19:43:05 | INFO | ============================================================
+2026-05-12 19:43:05 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-12 19:43:05 | INFO | ============================================================
+2026-05-12 19:43:05 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-12 19:43:05 | INFO | Extraindo ano 2014...
+2026-05-12 19:43:05 | INFO | [2014] 42 fragmentos encontrados em: microdados_enade_2014_LGPD
+2026-05-12 19:43:06 | SUCCESS | [2014] 28,336 egressos de Computação extraídos (42 fragmentos lidos)
+2026-05-12 19:43:06 | INFO | Extraindo ano 2017...
+2026-05-12 19:43:06 | INFO | [2017] 42 fragmentos encontrados em: microdados_enade_2017_LGPD
+2026-05-12 19:43:06 | SUCCESS | [2017] 30,566 egressos de Computação extraídos (42 fragmentos lidos)
+2026-05-12 19:43:06 | INFO | Extraindo ano 2021...
+2026-05-12 19:43:06 | INFO | [2021] 43 fragmentos encontrados em: microdados_enade_2021
+2026-05-12 19:43:07 | SUCCESS | [2021] 27,586 egressos de Computação extraídos (43 fragmentos lidos)
+2026-05-12 19:43:07 | SUCCESS | Extração concluída: 86,488 registros totais | Anos: 2014, 2017, 2021
+2026-05-12 19:43:07 | INFO |   86,488 registros extraídos
+2026-05-12 19:43:07 | INFO | ▶ ETAPA 2/4: Transformação
+2026-05-12 19:43:07 | INFO | === Iniciando transformação dos dados ===
+2026-05-12 19:43:07 | INFO | Convertendo tipos de dados...
+2026-05-12 19:43:07 | INFO | Antes do filtro de presença: 86,488 registros
+2026-05-12 19:44:35 | INFO | ============================================================
+2026-05-12 19:44:35 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-12 19:44:35 | INFO | ============================================================
+2026-05-12 19:44:36 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-12 19:44:36 | INFO | Extraindo ano 2014...
+2026-05-12 19:44:36 | INFO | [2014] 42 fragmentos encontrados em: microdados_enade_2014_LGPD
+2026-05-12 19:44:36 | SUCCESS | [2014] 28,336 egressos de Computação extraídos (42 fragmentos lidos)
+2026-05-12 19:44:36 | INFO | Extraindo ano 2017...
+2026-05-12 19:44:36 | INFO | [2017] 42 fragmentos encontrados em: microdados_enade_2017_LGPD
+2026-05-12 19:44:36 | SUCCESS | [2017] 30,566 egressos de Computação extraídos (42 fragmentos lidos)
+2026-05-12 19:44:36 | INFO | Extraindo ano 2021...
+2026-05-12 19:44:36 | INFO | [2021] 43 fragmentos encontrados em: microdados_enade_2021
+2026-05-12 19:44:37 | SUCCESS | [2021] 27,586 egressos de Computação extraídos (43 fragmentos lidos)
+2026-05-12 19:44:37 | SUCCESS | Extração concluída: 86,488 registros totais | Anos: 2014, 2017, 2021
+2026-05-12 19:44:37 | INFO |   86,488 registros extraídos
+2026-05-12 19:44:37 | INFO | ▶ ETAPA 2/4: Transformação
+2026-05-12 19:44:37 | INFO | === Iniciando transformação dos dados ===
+2026-05-12 19:44:37 | INFO | Convertendo tipos de dados...
+2026-05-12 19:44:37 | INFO | Antes do filtro de nota válida: 86,488 registros
+2026-05-12 19:47:54 | INFO | ============================================================
+2026-05-12 19:47:54 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-12 19:47:54 | INFO | ============================================================
+2026-05-12 19:47:55 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-12 19:47:55 | INFO | Extraindo ano 2014...
+2026-05-12 19:47:55 | INFO | [2014] 42 fragmentos encontrados
+2026-05-12 19:50:18 | INFO | ============================================================
+2026-05-12 19:50:18 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-12 19:50:18 | INFO | ============================================================
+2026-05-12 19:50:19 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-12 19:50:19 | INFO | Extraindo ano 2014...
+2026-05-12 19:50:19 | INFO | [2014] 42 fragmentos encontrados
+2026-05-12 19:50:19 | INFO | [2014] 861 cursos de Computação identificados
+2026-05-12 19:50:22 | INFO | [2014] Consolidando 12 fragmentos...
+2026-05-12 19:51:23 | INFO | ============================================================
+2026-05-12 19:51:23 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-12 19:51:23 | INFO | ============================================================
+2026-05-12 19:51:24 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-12 19:51:24 | INFO | Extraindo ano 2014...
+2026-05-12 19:51:24 | INFO | [2014] 42 fragmentos
+2026-05-12 19:51:24 | INFO | [2014] 861 cursos de Computação
+2026-05-12 19:51:42 | INFO | [2014] Montando DataFrame de 861 cursos...
+2026-05-12 19:51:42 | SUCCESS | [2014] 861 registros | 26 colunas
+2026-05-12 19:51:42 | INFO | Extraindo ano 2017...
+2026-05-12 19:51:42 | INFO | [2017] 42 fragmentos
+2026-05-12 19:51:42 | INFO | [2017] 990 cursos de Computação
+2026-05-12 19:52:02 | INFO | [2017] Montando DataFrame de 990 cursos...
+2026-05-12 19:52:02 | SUCCESS | [2017] 990 registros | 26 colunas
+2026-05-12 19:52:02 | INFO | Extraindo ano 2021...
+2026-05-12 19:52:02 | INFO | [2021] 43 fragmentos
+2026-05-12 19:52:02 | INFO | [2021] 817 cursos de Computação
+2026-05-12 19:52:20 | INFO | [2021] Montando DataFrame de 817 cursos...
+2026-05-12 19:52:20 | SUCCESS | [2021] 817 registros | 26 colunas
+2026-05-12 19:52:20 | SUCCESS | Extração concluída: 2,668 registros
+2026-05-12 19:52:20 | INFO |   2,668 registros extraídos
+2026-05-12 19:52:20 | SUCCESS | ============================================================
+2026-05-12 19:52:20 | SUCCESS |   Pipeline concluído com sucesso!
+2026-05-12 19:52:20 | SUCCESS | ============================================================
+2026-05-12 19:54:33 | INFO | ============================================================
+2026-05-12 19:54:33 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-12 19:54:33 | INFO | ============================================================
+2026-05-12 19:54:34 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-12 19:54:34 | INFO | Extraindo ano 2014...
+2026-05-12 19:54:34 | INFO | [2014] 42 fragmentos
+2026-05-12 19:54:34 | INFO | [2014] 861 estudantes de Computação
+2026-05-12 19:56:35 | INFO | ============================================================
+2026-05-12 19:56:35 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-12 19:56:35 | INFO | ============================================================
+2026-05-12 19:56:36 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-12 19:56:36 | INFO | Extraindo ano 2014...
+2026-05-12 19:56:36 | INFO | [2014] 42 fragmentos
+2026-05-12 19:56:38 | INFO | [2014] Montando DataFrame...
+2026-05-12 19:56:38 | SUCCESS | [2014] 28,336 estudantes | 26 colunas
+2026-05-12 19:56:38 | INFO | Extraindo ano 2017...
+2026-05-12 19:56:38 | INFO | [2017] 42 fragmentos
+2026-05-12 19:56:41 | INFO | [2017] Montando DataFrame...
+2026-05-12 19:56:41 | SUCCESS | [2017] 30,566 estudantes | 26 colunas
+2026-05-12 19:56:41 | INFO | Extraindo ano 2021...
+2026-05-12 19:56:41 | INFO | [2021] 43 fragmentos
+2026-05-12 19:56:44 | INFO | [2021] Montando DataFrame...
+2026-05-12 19:56:44 | SUCCESS | [2021] 27,586 estudantes | 26 colunas
+2026-05-12 19:56:44 | SUCCESS | Extração concluída: 86,488 registros totais
+2026-05-12 19:56:44 | INFO |   86,488 registros extraídos
+2026-05-12 19:56:44 | SUCCESS | ============================================================
+2026-05-12 19:56:44 | SUCCESS |   Pipeline concluído com sucesso!
+2026-05-12 19:56:44 | SUCCESS | ============================================================
+2026-05-12 20:00:58 | INFO | ============================================================
+2026-05-12 20:00:58 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-12 20:00:58 | INFO | ============================================================
+2026-05-12 20:00:59 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-12 20:00:59 | INFO | Extraindo ano 2014...
+2026-05-12 20:00:59 | INFO | [2014] 42 fragmentos
+2026-05-12 20:01:01 | INFO | [2014] Montando DataFrame...
+2026-05-12 20:01:01 | SUCCESS | [2014] 28,336 estudantes | 26 colunas
+2026-05-12 20:01:01 | INFO | Extraindo ano 2017...
+2026-05-12 20:01:01 | INFO | [2017] 42 fragmentos
+2026-05-12 20:01:04 | INFO | [2017] Montando DataFrame...
+2026-05-12 20:01:04 | SUCCESS | [2017] 30,566 estudantes | 26 colunas
+2026-05-12 20:01:04 | INFO | Extraindo ano 2021...
+2026-05-12 20:01:04 | INFO | [2021] 43 fragmentos
+2026-05-12 20:01:06 | INFO | [2021] Montando DataFrame...
+2026-05-12 20:01:06 | SUCCESS | [2021] 27,586 estudantes | 26 colunas
+2026-05-12 20:01:06 | SUCCESS | Extração concluída: 86,488 registros totais
+2026-05-12 20:01:06 | INFO |   86,488 registros extraídos
+2026-05-12 20:01:06 | INFO | ▶ ETAPA 2/4: Transformação
+2026-05-12 20:01:06 | INFO | === Iniciando transformação dos dados ===
+2026-05-12 20:01:06 | INFO | Convertendo tipos de dados...
+2026-05-12 20:01:07 | INFO | Antes do filtro de nota válida: 86,488 registros
+2026-05-12 20:01:07 | INFO | Após filtro: 75,462 registros
+2026-05-12 20:01:07 | INFO | Normalizando notas por ano...
+2026-05-12 20:01:07 | INFO | Criando faixa de nota (baixo / médio / alto)...
+2026-05-12 20:04:22 | INFO | ============================================================
+2026-05-12 20:04:22 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-12 20:04:22 | INFO | ============================================================
+2026-05-12 20:04:22 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-12 20:04:22 | INFO | Extraindo ano 2014...
+2026-05-12 20:04:22 | INFO | [2014] 42 fragmentos
+2026-05-12 20:04:25 | INFO | [2014] Montando DataFrame...
+2026-05-12 20:04:25 | SUCCESS | [2014] 28,336 estudantes | 26 colunas
+2026-05-12 20:04:25 | INFO | Extraindo ano 2017...
+2026-05-12 20:04:25 | INFO | [2017] 42 fragmentos
+2026-05-12 20:04:28 | INFO | [2017] Montando DataFrame...
+2026-05-12 20:04:28 | SUCCESS | [2017] 30,566 estudantes | 26 colunas
+2026-05-12 20:04:28 | INFO | Extraindo ano 2021...
+2026-05-12 20:04:28 | INFO | [2021] 43 fragmentos
+2026-05-12 20:04:30 | INFO | [2021] Montando DataFrame...
+2026-05-12 20:04:30 | SUCCESS | [2021] 27,586 estudantes | 26 colunas
+2026-05-12 20:04:30 | SUCCESS | Extração concluída: 86,488 registros totais
+2026-05-12 20:04:30 | INFO |   86,488 registros extraídos
+2026-05-12 20:04:30 | INFO | ▶ ETAPA 2/4: Transformação
+2026-05-12 20:04:30 | INFO | === Iniciando transformação dos dados ===
+2026-05-12 20:04:30 | INFO | Convertendo tipos de dados...
+2026-05-12 20:04:31 | INFO | Antes do filtro de nota válida: 86,488 registros
+2026-05-12 20:04:31 | INFO | Após filtro: 75,462 registros
+2026-05-12 20:04:31 | INFO | Normalizando notas por ano...
+2026-05-12 20:04:31 | INFO | Criando faixa de nota (baixo / médio / alto)...
+2026-05-12 20:04:31 | INFO | Distribuição das faixas:
+FAIXA_NOTA
+alto     25361
+medio    25144
+baixo    24957
+Name: count, dtype: int64
+2026-05-12 20:04:31 | INFO | Mapeando códigos para rótulos...
+2026-05-12 20:04:31 | INFO | Preparando features para ML...
+2026-05-12 20:04:31 | SUCCESS | Transformação concluída: 75,462 registros, 30 colunas
+2026-05-12 20:04:31 | INFO | Colunas finais: ['CO_CURSO', 'CO_CATEGAD', 'CO_ORGACAD', 'CO_GRUPO', 'CO_REGIAO_CURSO', 'QE_I04', 'QE_I05', 'QE_I08', 'QE_I17', 'QE_I18', 'QE_I19', 'QE_I21', 'QE_I23', 'NT_GER', 'NT_FG', 'NT_CE', 'QE_I01', 'QE_I02', 'QI_1', 'QI_2', 'QI_4', 'QI_5', 'QI_7', 'NT_GER_NORM', 'FAIXA_NOTA', 'REGIAO_LABEL', 'CATEGAD_LABEL', 'CURSO_LABEL', 'RENDA_LABEL', 'ESCOLA_EM_LABEL']
+2026-05-12 20:04:32 | INFO | ▶ ETAPA 3/4: Machine Learning
+2026-05-12 20:04:32 | INFO | === Iniciando pipeline de Machine Learning ===
+2026-05-12 20:04:32 | INFO | Treinando K-Means com 4 clusters...
+2026-05-12 20:04:34 | SUCCESS | K-Means salvo em: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/models/kmeans_pipeline.joblib
+2026-05-12 20:04:34 | INFO |   Cluster 0: 24,429 estudantes
+2026-05-12 20:04:34 | INFO |   Cluster 1: 14,773 estudantes
+2026-05-12 20:04:34 | INFO |   Cluster 2: 29,471 estudantes
+2026-05-12 20:04:34 | INFO |   Cluster 3: 6,789 estudantes
+2026-05-12 20:04:34 | INFO | Treinando Random Forest...
+2026-05-12 20:04:35 | SUCCESS | Random Forest — acurácia no teste: 97.18%
+2026-05-12 20:04:35 | INFO | Importância das features:
+2026-05-12 20:04:35 | INFO |   QE_I08: 0.2970
+2026-05-12 20:04:35 | INFO |   QE_I02: 0.2928
+2026-05-12 20:04:35 | INFO |   QE_I04: 0.1416
+2026-05-12 20:04:35 | INFO |   QE_I05: 0.1416
+2026-05-12 20:04:35 | INFO |   QE_I19: 0.0600
+2026-05-12 20:04:35 | INFO |   QE_I17: 0.0304
+2026-05-12 20:04:35 | INFO |   QE_I18: 0.0185
+2026-05-12 20:04:35 | INFO |   CO_CATEGAD: 0.0093
+2026-05-12 20:04:35 | INFO |   CO_REGIAO_CURSO: 0.0088
+2026-05-12 20:04:35 | SUCCESS | Random Forest salvo em: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/models/random_forest.joblib
+2026-05-12 20:04:35 | INFO | Aplicando PCA para visualização 2D...
+2026-05-12 20:04:35 | INFO | PCA: variância explicada — PC1: 63.0%, PC2: 12.6%, total: 75.7%
+2026-05-12 20:04:35 | SUCCESS | Pipeline de ML concluído.
+2026-05-12 20:04:35 | INFO |   Acurácia Random Forest: 97.18%
+2026-05-12 20:04:35 | INFO | ▶ ETAPA 4/4: Carga no PostgreSQL
+2026-05-12 20:04:35 | INFO | === Iniciando carga no PostgreSQL ===
+2026-05-12 20:04:35 | SUCCESS | Conexão com PostgreSQL estabelecida.
+2026-05-12 20:04:35 | INFO | Carregando 75,462 registros na tabela 'egressos'...
+2026-05-12 20:05:15 | SUCCESS | Tabela 'egressos' populada com 75,462 registros.
+2026-05-12 20:05:15 | INFO | Salvando métricas de ML no banco...
+2026-05-12 20:05:15 | SUCCESS | Tabela 'ml_metricas' populada com 15 registros.
+2026-05-12 20:05:15 | INFO | Criando índices no banco...
+2026-05-12 20:08:07 | INFO | ============================================================
+2026-05-12 20:08:07 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-12 20:08:07 | INFO | ============================================================
+2026-05-12 20:08:08 | INFO | Extraindo ano 2014...
+2026-05-12 20:08:08 | INFO | [2014] 42 fragmentos
+2026-05-12 20:08:10 | INFO | [2014] Montando DataFrame...
+2026-05-12 20:08:10 | SUCCESS | [2014] 28,336 estudantes | 26 colunas
+2026-05-12 20:08:10 | INFO | Extraindo ano 2017...
+2026-05-12 20:08:10 | INFO | [2017] 42 fragmentos
+2026-05-12 20:08:13 | INFO | [2017] Montando DataFrame...
+2026-05-12 20:08:13 | SUCCESS | [2017] 30,566 estudantes | 26 colunas
+2026-05-12 20:08:13 | INFO | Extraindo ano 2021...
+2026-05-12 20:08:13 | INFO | [2021] 43 fragmentos
+2026-05-12 20:08:15 | INFO | [2021] Montando DataFrame...
+2026-05-12 20:08:15 | SUCCESS | [2021] 27,586 estudantes | 26 colunas
+2026-05-12 20:08:15 | SUCCESS | Extração concluída: 86,488 registros totais
+2026-05-12 20:08:15 | INFO | === Iniciando transformação dos dados ===
+2026-05-12 20:08:15 | INFO | Convertendo tipos de dados...
+2026-05-12 20:08:16 | INFO | Antes do filtro de nota válida: 86,488 registros
+2026-05-12 20:08:16 | INFO | Após filtro: 75,462 registros
+2026-05-12 20:08:16 | INFO | Normalizando notas por ano...
+2026-05-12 20:08:16 | INFO | Criando faixa de nota (baixo / médio / alto)...
+2026-05-12 20:08:16 | INFO | Distribuição das faixas:
+FAIXA_NOTA
+alto     25361
+medio    25144
+baixo    24957
+Name: count, dtype: int64
+2026-05-12 20:08:16 | INFO | Mapeando códigos para rótulos...
+2026-05-12 20:08:16 | INFO | Preparando features para ML...
+2026-05-12 20:08:16 | SUCCESS | Transformação concluída: 75,462 registros, 30 colunas
+2026-05-12 20:08:16 | INFO | Colunas finais: ['CO_CURSO', 'CO_CATEGAD', 'CO_ORGACAD', 'CO_GRUPO', 'CO_REGIAO_CURSO', 'QE_I04', 'QE_I05', 'QE_I08', 'QE_I17', 'QE_I18', 'QE_I19', 'QE_I21', 'QE_I23', 'NT_GER', 'NT_FG', 'NT_CE', 'QE_I01', 'QE_I02', 'QI_1', 'QI_2', 'QI_4', 'QI_5', 'QI_7', 'NT_GER_NORM', 'FAIXA_NOTA', 'REGIAO_LABEL', 'CATEGAD_LABEL', 'CURSO_LABEL', 'RENDA_LABEL', 'ESCOLA_EM_LABEL']
+2026-05-12 20:08:16 | INFO | === Iniciando pipeline de Machine Learning ===
+2026-05-12 20:08:16 | INFO | Treinando K-Means com 4 clusters...
+2026-05-12 20:08:18 | SUCCESS | K-Means salvo em: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/models/kmeans_pipeline.joblib
+2026-05-12 20:08:18 | INFO |   Cluster 0: 24,429 estudantes
+2026-05-12 20:08:18 | INFO |   Cluster 1: 14,773 estudantes
+2026-05-12 20:08:18 | INFO |   Cluster 2: 29,471 estudantes
+2026-05-12 20:08:18 | INFO |   Cluster 3: 6,789 estudantes
+2026-05-12 20:08:18 | INFO | Treinando Random Forest...
+2026-05-12 20:08:19 | SUCCESS | Random Forest — acurácia no teste: 97.18%
+2026-05-12 20:08:19 | INFO | Importância das features:
+2026-05-12 20:08:19 | INFO |   QE_I08: 0.2970
+2026-05-12 20:08:19 | INFO |   QE_I02: 0.2928
+2026-05-12 20:08:19 | INFO |   QE_I04: 0.1416
+2026-05-12 20:08:19 | INFO |   QE_I05: 0.1416
+2026-05-12 20:08:19 | INFO |   QE_I19: 0.0600
+2026-05-12 20:08:19 | INFO |   QE_I17: 0.0304
+2026-05-12 20:08:19 | INFO |   QE_I18: 0.0185
+2026-05-12 20:08:19 | INFO |   CO_CATEGAD: 0.0093
+2026-05-12 20:08:19 | INFO |   CO_REGIAO_CURSO: 0.0088
+2026-05-12 20:08:19 | SUCCESS | Random Forest salvo em: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/models/random_forest.joblib
+2026-05-12 20:08:19 | INFO | Aplicando PCA para visualização 2D...
+2026-05-12 20:08:19 | INFO | PCA: variância explicada — PC1: 63.0%, PC2: 12.6%, total: 75.7%
+2026-05-12 20:08:19 | SUCCESS | Pipeline de ML concluído.
+2026-05-12 20:08:19 | INFO | ▶ ETAPA 4/4: Carga no PostgreSQL
+2026-05-12 20:08:19 | INFO | === Iniciando carga no PostgreSQL ===
+2026-05-12 20:08:19 | SUCCESS | Conexão com PostgreSQL estabelecida.
+2026-05-12 20:08:19 | INFO | Carregando 75,462 registros na tabela 'egressos'...
+2026-05-12 20:09:04 | SUCCESS | Tabela 'egressos' populada com 75,462 registros.
+2026-05-12 20:09:04 | INFO | Salvando métricas de ML no banco...
+2026-05-12 20:09:04 | SUCCESS | Tabela 'ml_metricas' populada com 15 registros.
+2026-05-12 20:09:04 | INFO | Criando índices no banco...
+2026-05-12 20:09:04 | WARNING |   Coluna 'nu_ano' não existe — índice idx_egressos_ano ignorado.
+2026-05-12 20:09:04 | INFO |   Índice criado: idx_egressos_curso
+2026-05-12 20:09:04 | INFO |   Índice criado: idx_egressos_regiao
+2026-05-12 20:09:04 | INFO |   Índice criado: idx_egressos_cluster
+2026-05-12 20:09:04 | INFO |   Índice criado: idx_egressos_faixa
+2026-05-12 20:09:04 | SUCCESS | Índices criados.
+2026-05-12 20:09:04 | SUCCESS | Carga no banco concluída com sucesso!
+2026-05-12 20:09:04 | SUCCESS | ============================================================
+2026-05-12 20:09:04 | SUCCESS |   Pipeline concluído com sucesso!
+2026-05-12 20:09:04 | SUCCESS | ============================================================
+2026-05-12 20:14:29 | INFO | ============================================================
+2026-05-12 20:14:29 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-12 20:14:29 | INFO | ============================================================
+2026-05-12 20:14:30 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-12 20:14:30 | INFO | Extraindo ano 2014...
+2026-05-12 20:14:30 | INFO | [2014] 42 fragmentos
+2026-05-12 20:14:32 | INFO | [2014] Montando DataFrame...
+2026-05-12 20:14:32 | SUCCESS | [2014] 28,336 estudantes | 26 colunas
+2026-05-12 20:14:32 | INFO | Extraindo ano 2017...
+2026-05-12 20:14:32 | INFO | [2017] 42 fragmentos
+2026-05-12 20:14:35 | INFO | [2017] Montando DataFrame...
+2026-05-12 20:14:35 | SUCCESS | [2017] 30,566 estudantes | 26 colunas
+2026-05-12 20:14:35 | INFO | Extraindo ano 2021...
+2026-05-12 20:14:35 | INFO | [2021] 43 fragmentos
+2026-05-12 20:14:37 | INFO | [2021] Montando DataFrame...
+2026-05-12 20:14:37 | SUCCESS | [2021] 27,586 estudantes | 26 colunas
+2026-05-12 20:14:37 | SUCCESS | Extração concluída: 86,488 registros totais
+2026-05-12 20:14:37 | INFO |   86,488 registros extraídos
+2026-05-12 20:14:37 | INFO | ▶ ETAPA 2/4: Transformação
+2026-05-12 20:14:37 | INFO | === Iniciando transformação dos dados ===
+2026-05-12 20:14:37 | INFO | Convertendo tipos de dados...
+2026-05-12 20:14:38 | INFO | Antes do filtro de nota válida: 86,488 registros
+2026-05-12 20:14:38 | INFO | Após filtro: 75,462 registros
+2026-05-12 20:14:38 | INFO | Normalizando notas por ano...
+2026-05-12 20:14:38 | INFO | Criando faixa de nota (baixo / médio / alto)...
+2026-05-12 20:14:38 | INFO | Distribuição das faixas:
+FAIXA_NOTA
+alto     25361
+medio    25144
+baixo    24957
+Name: count, dtype: int64
+2026-05-12 20:14:38 | INFO | Mapeando códigos para rótulos...
+2026-05-12 20:14:38 | INFO | Preparando features para ML...
+2026-05-12 20:14:38 | SUCCESS | Transformação concluída: 75,462 registros, 31 colunas
+2026-05-12 20:14:38 | INFO | Colunas finais: ['CO_CURSO', 'CO_CATEGAD', 'CO_ORGACAD', 'CO_GRUPO', 'CO_REGIAO_CURSO', 'QE_I04', 'QE_I05', 'QE_I08', 'QE_I17', 'QE_I18', 'QE_I19', 'QE_I21', 'QE_I23', 'NT_GER', 'NT_FG', 'NT_CE', 'QE_I01', 'QE_I02', 'QI_1', 'QI_2', 'QI_4', 'QI_5', 'QI_7', 'NT_GER_NORM', 'NU_ANO', 'FAIXA_NOTA', 'REGIAO_LABEL', 'CATEGAD_LABEL', 'CURSO_LABEL', 'RENDA_LABEL', 'ESCOLA_EM_LABEL']
+2026-05-12 20:14:39 | INFO | ▶ ETAPA 3/4: Machine Learning
+2026-05-12 20:14:39 | INFO | === Iniciando pipeline de Machine Learning ===
+2026-05-12 20:14:39 | INFO | Treinando K-Means com 4 clusters...
+2026-05-12 20:14:41 | SUCCESS | K-Means salvo em: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/models/kmeans_pipeline.joblib
+2026-05-12 20:14:41 | INFO |   Cluster 0: 24,429 estudantes
+2026-05-12 20:14:41 | INFO |   Cluster 1: 14,773 estudantes
+2026-05-12 20:14:41 | INFO |   Cluster 2: 29,471 estudantes
+2026-05-12 20:14:41 | INFO |   Cluster 3: 6,789 estudantes
+2026-05-12 20:14:41 | INFO | Treinando Random Forest...
+2026-05-12 20:14:41 | SUCCESS | Random Forest — acurácia no teste: 97.18%
+2026-05-12 20:14:41 | INFO | Importância das features:
+2026-05-12 20:14:41 | INFO |   QE_I08: 0.2970
+2026-05-12 20:14:41 | INFO |   QE_I02: 0.2928
+2026-05-12 20:14:41 | INFO |   QE_I04: 0.1416
+2026-05-12 20:14:41 | INFO |   QE_I05: 0.1416
+2026-05-12 20:14:41 | INFO |   QE_I19: 0.0600
+2026-05-12 20:14:41 | INFO |   QE_I17: 0.0304
+2026-05-12 20:14:41 | INFO |   QE_I18: 0.0185
+2026-05-12 20:14:41 | INFO |   CO_CATEGAD: 0.0093
+2026-05-12 20:14:41 | INFO |   CO_REGIAO_CURSO: 0.0088
+2026-05-12 20:14:42 | SUCCESS | Random Forest salvo em: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/models/random_forest.joblib
+2026-05-12 20:14:42 | INFO | Aplicando PCA para visualização 2D...
+2026-05-12 20:14:42 | INFO | PCA: variância explicada — PC1: 63.0%, PC2: 12.6%, total: 75.7%
+2026-05-12 20:14:42 | SUCCESS | Pipeline de ML concluído.
+2026-05-12 20:14:42 | INFO |   Acurácia Random Forest: 97.18%
+2026-05-12 20:14:42 | INFO | ▶ ETAPA 4/4: Carga no PostgreSQL
+2026-05-12 20:14:42 | INFO | === Iniciando carga no PostgreSQL ===
+2026-05-12 20:14:42 | SUCCESS | Conexão com PostgreSQL estabelecida.
+2026-05-12 20:14:42 | INFO | Carregando 75,462 registros na tabela 'egressos'...
+2026-05-12 20:15:28 | SUCCESS | Tabela 'egressos' populada com 75,462 registros.
+2026-05-12 20:15:28 | INFO | Salvando métricas de ML no banco...
+2026-05-12 20:15:28 | SUCCESS | Tabela 'ml_metricas' populada com 15 registros.
+2026-05-12 20:15:28 | INFO | Criando índices no banco...
+2026-05-12 20:15:28 | INFO |   Índice criado: idx_egressos_ano
+2026-05-12 20:15:28 | INFO |   Índice criado: idx_egressos_curso
+2026-05-12 20:15:28 | INFO |   Índice criado: idx_egressos_regiao
+2026-05-12 20:15:28 | INFO |   Índice criado: idx_egressos_cluster
+2026-05-12 20:15:28 | INFO |   Índice criado: idx_egressos_faixa
+2026-05-12 20:15:28 | SUCCESS | Índices criados.
+2026-05-12 20:15:28 | SUCCESS | Carga no banco concluída com sucesso!
+2026-05-12 20:15:28 | SUCCESS | ============================================================
+2026-05-12 20:15:28 | SUCCESS |   Pipeline concluído com sucesso!
+2026-05-12 20:15:28 | SUCCESS | ============================================================
+2026-05-12 20:18:38 | INFO | ============================================================
+2026-05-12 20:18:38 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-12 20:18:38 | INFO | ============================================================
+2026-05-12 20:18:39 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-12 20:18:39 | INFO | Extraindo ano 2014...
+2026-05-12 20:18:39 | INFO | [2014] 42 fragmentos
+2026-05-12 20:18:41 | INFO | [2014] Montando DataFrame...
+2026-05-12 20:18:41 | SUCCESS | [2014] 28,336 estudantes | 26 colunas
+2026-05-12 20:18:41 | INFO | Extraindo ano 2017...
+2026-05-12 20:18:41 | INFO | [2017] 42 fragmentos
+2026-05-12 20:18:44 | INFO | [2017] Montando DataFrame...
+2026-05-12 20:18:44 | SUCCESS | [2017] 30,566 estudantes | 26 colunas
+2026-05-12 20:18:44 | INFO | Extraindo ano 2021...
+2026-05-12 20:18:44 | INFO | [2021] 43 fragmentos
+2026-05-12 20:18:46 | INFO | [2021] Montando DataFrame...
+2026-05-12 20:18:46 | SUCCESS | [2021] 27,586 estudantes | 26 colunas
+2026-05-12 20:18:46 | SUCCESS | Extração concluída: 86,488 registros totais
+2026-05-12 20:18:46 | INFO |   86,488 registros extraídos
+2026-05-12 20:18:46 | INFO | ▶ ETAPA 2/4: Transformação
+2026-05-12 20:18:46 | INFO | === Iniciando transformação dos dados ===
+2026-05-12 20:18:46 | INFO | Convertendo tipos de dados...
+2026-05-12 20:18:47 | INFO | Antes do filtro de nota válida: 86,488 registros
+2026-05-12 20:18:47 | INFO | Após filtro: 75,462 registros
+2026-05-12 20:18:47 | INFO | Normalizando notas por ano...
+2026-05-12 20:19:18 | INFO | ============================================================
+2026-05-12 20:19:18 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-12 20:19:18 | INFO | ============================================================
+2026-05-12 20:19:18 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-12 20:19:18 | INFO | Extraindo ano 2014...
+2026-05-12 20:19:18 | INFO | [2014] 42 fragmentos
+2026-05-12 20:19:20 | INFO | [2014] Montando DataFrame...
+2026-05-12 20:19:20 | SUCCESS | [2014] 28,336 estudantes | 26 colunas
+2026-05-12 20:19:20 | INFO | Extraindo ano 2017...
+2026-05-12 20:19:20 | INFO | [2017] 42 fragmentos
+2026-05-12 20:19:23 | INFO | [2017] Montando DataFrame...
+2026-05-12 20:19:23 | SUCCESS | [2017] 30,566 estudantes | 26 colunas
+2026-05-12 20:19:23 | INFO | Extraindo ano 2021...
+2026-05-12 20:19:23 | INFO | [2021] 43 fragmentos
+2026-05-12 20:19:25 | INFO | [2021] Montando DataFrame...
+2026-05-12 20:19:25 | SUCCESS | [2021] 27,586 estudantes | 26 colunas
+2026-05-12 20:19:25 | SUCCESS | Extração concluída: 86,488 registros totais
+2026-05-12 20:19:25 | INFO |   86,488 registros extraídos
+2026-05-12 20:19:25 | INFO | ▶ ETAPA 2/4: Transformação
+2026-05-12 20:19:25 | INFO | === Iniciando transformação dos dados ===
+2026-05-12 20:19:25 | INFO | Convertendo tipos de dados...
+2026-05-12 20:19:26 | INFO | Antes do filtro de nota válida: 86,488 registros
+2026-05-12 20:19:26 | INFO | Após filtro: 75,462 registros
+2026-05-12 20:19:26 | INFO | Normalizando notas por ano...
+2026-05-12 20:19:26 | INFO | Criando faixa de nota (baixo / médio / alto)...
+2026-05-12 20:19:26 | INFO | Distribuição das faixas:
+FAIXA_NOTA
+alto     25361
+medio    25144
+baixo    24957
+Name: count, dtype: int64
+2026-05-12 20:19:26 | INFO | Mapeando códigos para rótulos...
+2026-05-12 20:19:26 | INFO | Preparando features para ML...
+2026-05-12 20:19:26 | SUCCESS | Transformação concluída: 75,462 registros, 31 colunas
+2026-05-12 20:19:26 | INFO | Colunas finais: ['NU_ANO', 'CO_CURSO', 'CO_CATEGAD', 'CO_ORGACAD', 'CO_GRUPO', 'CO_REGIAO_CURSO', 'QE_I04', 'QE_I05', 'QE_I08', 'QE_I17', 'QE_I18', 'QE_I19', 'QE_I21', 'QE_I23', 'NT_GER', 'NT_FG', 'NT_CE', 'QE_I01', 'QE_I02', 'QI_1', 'QI_2', 'QI_4', 'QI_5', 'QI_7', 'NT_GER_NORM', 'FAIXA_NOTA', 'REGIAO_LABEL', 'CATEGAD_LABEL', 'CURSO_LABEL', 'RENDA_LABEL', 'ESCOLA_EM_LABEL']
+2026-05-12 20:19:27 | INFO | ▶ ETAPA 3/4: Machine Learning
+2026-05-12 20:19:27 | INFO | === Iniciando pipeline de Machine Learning ===
+2026-05-12 20:19:27 | INFO | Treinando K-Means com 4 clusters...
+2026-05-12 20:19:29 | SUCCESS | K-Means salvo em: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/models/kmeans_pipeline.joblib
+2026-05-12 20:19:29 | INFO |   Cluster 0: 24,429 estudantes
+2026-05-12 20:19:29 | INFO |   Cluster 1: 14,773 estudantes
+2026-05-12 20:19:29 | INFO |   Cluster 2: 29,471 estudantes
+2026-05-12 20:19:29 | INFO |   Cluster 3: 6,789 estudantes
+2026-05-12 20:19:29 | INFO | Treinando Random Forest...
+2026-05-12 20:19:30 | SUCCESS | Random Forest — acurácia no teste: 97.18%
+2026-05-12 20:19:30 | INFO | Importância das features:
+2026-05-12 20:19:30 | INFO |   QE_I08: 0.2970
+2026-05-12 20:19:30 | INFO |   QE_I02: 0.2928
+2026-05-12 20:19:30 | INFO |   QE_I04: 0.1416
+2026-05-12 20:19:30 | INFO |   QE_I05: 0.1416
+2026-05-12 20:19:30 | INFO |   QE_I19: 0.0600
+2026-05-12 20:19:30 | INFO |   QE_I17: 0.0304
+2026-05-12 20:19:30 | INFO |   QE_I18: 0.0185
+2026-05-12 20:19:30 | INFO |   CO_CATEGAD: 0.0093
+2026-05-12 20:19:30 | INFO |   CO_REGIAO_CURSO: 0.0088
+2026-05-12 20:19:30 | SUCCESS | Random Forest salvo em: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/models/random_forest.joblib
+2026-05-12 20:19:30 | INFO | Aplicando PCA para visualização 2D...
+2026-05-12 20:19:30 | INFO | PCA: variância explicada — PC1: 63.0%, PC2: 12.6%, total: 75.7%
+2026-05-12 20:19:30 | SUCCESS | Pipeline de ML concluído.
+2026-05-12 20:19:30 | INFO |   Acurácia Random Forest: 97.18%
+2026-05-12 20:19:30 | INFO | ▶ ETAPA 4/4: Carga no PostgreSQL
+2026-05-12 20:19:30 | INFO | === Iniciando carga no PostgreSQL ===
+2026-05-12 20:19:30 | SUCCESS | Conexão com PostgreSQL estabelecida.
+2026-05-12 20:19:30 | INFO | Carregando 75,462 registros na tabela 'egressos'...
+2026-05-12 20:20:17 | SUCCESS | Tabela 'egressos' populada com 75,462 registros.
+2026-05-12 20:20:17 | INFO | Salvando métricas de ML no banco...
+2026-05-12 20:20:17 | SUCCESS | Tabela 'ml_metricas' populada com 15 registros.
+2026-05-12 20:20:17 | INFO | Criando índices no banco...
+2026-05-12 20:20:17 | INFO |   Índice criado: idx_egressos_ano
+2026-05-12 20:20:17 | INFO |   Índice criado: idx_egressos_curso
+2026-05-12 20:20:17 | INFO |   Índice criado: idx_egressos_regiao
+2026-05-12 20:20:17 | INFO |   Índice criado: idx_egressos_cluster
+2026-05-12 20:20:17 | INFO |   Índice criado: idx_egressos_faixa
+2026-05-12 20:20:17 | SUCCESS | Índices criados.
+2026-05-12 20:20:17 | SUCCESS | Carga no banco concluída com sucesso!
+2026-05-12 20:20:17 | SUCCESS | ============================================================
+2026-05-12 20:20:17 | SUCCESS |   Pipeline concluído com sucesso!
+2026-05-12 20:20:17 | SUCCESS | ============================================================
+2026-05-18 18:57:01 | INFO | ============================================================
+2026-05-18 18:57:01 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-18 18:57:01 | INFO | ============================================================
+2026-05-18 18:57:02 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-18 18:57:02 | INFO | Extraindo ano 2014...
+2026-05-18 18:57:02 | ERROR | Pasta não encontrada: /home/mikaelalves/Documentos/TCC/Dados/microdados_enade_2014_LGPD
+2026-05-18 18:57:02 | INFO | Extraindo ano 2017...
+2026-05-18 18:57:02 | ERROR | Pasta não encontrada: /home/mikaelalves/Documentos/TCC/Dados/microdados_enade_2017_LGPD
+2026-05-18 18:57:02 | INFO | Extraindo ano 2021...
+2026-05-18 18:57:02 | ERROR | Pasta não encontrada: /home/mikaelalves/Documentos/TCC/Dados/microdados_enade_2021
+2026-05-18 18:57:20 | INFO | ============================================================
+2026-05-18 18:57:20 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-18 18:57:20 | INFO | ============================================================
+2026-05-18 18:57:20 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-18 18:57:20 | INFO | Extraindo ano 2014...
+2026-05-18 18:57:20 | ERROR | Pasta não encontrada: /home/mikaelalves/Documentos/TCC/Dados/microdados_enade_2014_LGPD
+2026-05-18 18:57:20 | INFO | Extraindo ano 2017...
+2026-05-18 18:57:20 | ERROR | Pasta não encontrada: /home/mikaelalves/Documentos/TCC/Dados/microdados_enade_2017_LGPD
+2026-05-18 18:57:20 | INFO | Extraindo ano 2021...
+2026-05-18 18:57:20 | ERROR | Pasta não encontrada: /home/mikaelalves/Documentos/TCC/Dados/microdados_enade_2021
+2026-05-25 20:02:57 | INFO | ============================================================
+2026-05-25 20:02:57 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-25 20:02:57 | INFO | ============================================================
+2026-05-25 20:02:57 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-25 20:02:57 | INFO | Extraindo ano 2014...
+2026-05-25 20:02:57 | INFO | [2014] 42 fragmentos
+2026-05-25 20:03:02 | INFO | [2014] Montando DataFrame...
+2026-05-25 20:03:02 | SUCCESS | [2014] 51,774 estudantes | 26 colunas
+2026-05-25 20:03:02 | INFO | Extraindo ano 2017...
+2026-05-25 20:03:02 | INFO | [2017] 42 fragmentos
+2026-05-25 20:03:05 | INFO | [2017] Montando DataFrame...
+2026-05-25 20:03:05 | SUCCESS | [2017] 51,009 estudantes | 26 colunas
+2026-05-25 20:03:05 | INFO | Extraindo ano 2021...
+2026-05-25 20:03:05 | INFO | [2021] 43 fragmentos
+2026-05-25 20:03:08 | INFO | [2021] Montando DataFrame...
+2026-05-25 20:03:09 | SUCCESS | [2021] 62,031 estudantes | 26 colunas
+2026-05-25 20:03:09 | SUCCESS | Extração concluída: 164,814 registros totais
+2026-05-25 20:03:09 | INFO |   164,814 registros extraídos
+2026-05-25 20:03:09 | INFO | ▶ ETAPA 2/4: Transformação
+2026-05-25 20:03:09 | INFO | === Iniciando transformação dos dados ===
+2026-05-25 20:03:09 | INFO | Convertendo tipos de dados...
+2026-05-25 20:03:10 | INFO | Antes do filtro de nota válida: 164,814 registros
+2026-05-25 20:03:10 | INFO | Após filtro: 127,243 registros
+2026-05-25 20:03:10 | INFO | Normalizando notas por ano...
+2026-05-25 20:03:10 | INFO | Criando faixa de nota (baixo / médio / alto)...
+2026-05-25 20:03:10 | INFO | Distribuição das faixas:
+FAIXA_NOTA
+alto     43247
+baixo    42015
+medio    41981
+Name: count, dtype: int64
+2026-05-25 20:03:10 | INFO | Mapeando códigos para rótulos...
+2026-05-25 20:03:10 | INFO | Preparando features para ML...
+2026-05-25 20:03:10 | SUCCESS | Transformação concluída: 127,243 registros, 31 colunas
+2026-05-25 20:03:10 | INFO | Colunas finais: ['NU_ANO', 'CO_CURSO', 'CO_CATEGAD', 'CO_ORGACAD', 'CO_GRUPO', 'CO_REGIAO_CURSO', 'QE_I04', 'QE_I05', 'QE_I08', 'QE_I17', 'QE_I18', 'QE_I19', 'QE_I21', 'QE_I23', 'NT_GER', 'NT_FG', 'NT_CE', 'QE_I01', 'QE_I02', 'QI_1', 'QI_2', 'QI_4', 'QI_5', 'QI_7', 'NT_GER_NORM', 'FAIXA_NOTA', 'REGIAO_LABEL', 'CATEGAD_LABEL', 'CURSO_LABEL', 'RENDA_LABEL', 'ESCOLA_EM_LABEL']
+2026-05-25 20:03:11 | INFO | ▶ ETAPA 3/4: Machine Learning
+2026-05-25 20:03:11 | INFO | === Iniciando pipeline de Machine Learning ===
+2026-05-25 20:03:11 | INFO | Treinando K-Means com 4 clusters...
+2026-05-25 20:03:13 | SUCCESS | K-Means salvo em: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/models/kmeans_pipeline.joblib
+2026-05-25 20:03:13 | INFO |   Cluster 0: 65,451 estudantes
+2026-05-25 20:03:13 | INFO |   Cluster 1: 27,646 estudantes
+2026-05-25 20:03:13 | INFO |   Cluster 2: 29,014 estudantes
+2026-05-25 20:03:13 | INFO |   Cluster 3: 5,132 estudantes
+2026-05-25 20:03:13 | INFO | Treinando Random Forest...
+2026-05-25 20:03:16 | SUCCESS | Random Forest — acurácia no teste: 95.60%
+2026-05-25 20:03:16 | INFO | Importância das features:
+2026-05-25 20:03:16 | INFO |   QE_I05: 0.2856
+2026-05-25 20:03:16 | INFO |   QE_I19: 0.1932
+2026-05-25 20:03:16 | INFO |   QE_I18: 0.1595
+2026-05-25 20:03:16 | INFO |   QE_I08: 0.1485
+2026-05-25 20:03:16 | INFO |   QE_I02: 0.0983
+2026-05-25 20:03:16 | INFO |   QE_I04: 0.0776
+2026-05-25 20:03:16 | INFO |   QE_I17: 0.0147
+2026-05-25 20:03:16 | INFO |   CO_CATEGAD: 0.0118
+2026-05-25 20:03:16 | INFO |   CO_REGIAO_CURSO: 0.0109
+2026-05-25 20:03:16 | SUCCESS | Random Forest salvo em: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/models/random_forest.joblib
+2026-05-25 20:03:16 | INFO | Aplicando PCA para visualização 2D...
+2026-05-25 20:03:16 | INFO | PCA: variância explicada — PC1: 63.4%, PC2: 12.8%, total: 76.2%
+2026-05-25 20:03:16 | SUCCESS | Pipeline de ML concluído.
+2026-05-25 20:03:16 | INFO |   Acurácia Random Forest: 95.60%
+2026-05-25 20:03:16 | INFO | ▶ ETAPA 4/4: Carga no PostgreSQL
+2026-05-25 20:03:16 | INFO | === Iniciando carga no PostgreSQL ===
+2026-05-25 20:03:16 | SUCCESS | Conexão com PostgreSQL estabelecida.
+2026-05-25 20:03:16 | INFO | Carregando 127,243 registros na tabela 'egressos'...
+2026-05-25 20:04:39 | SUCCESS | Tabela 'egressos' populada com 127,243 registros.
+2026-05-25 20:04:39 | INFO | Salvando métricas de ML no banco...
+2026-05-25 20:04:39 | SUCCESS | Tabela 'ml_metricas' populada com 15 registros.
+2026-05-25 20:04:39 | INFO | Criando índices no banco...
+2026-05-25 20:04:39 | INFO |   Índice criado: idx_egressos_ano
+2026-05-25 20:04:39 | INFO |   Índice criado: idx_egressos_curso
+2026-05-25 20:04:39 | INFO |   Índice criado: idx_egressos_regiao
+2026-05-25 20:04:39 | INFO |   Índice criado: idx_egressos_cluster
+2026-05-25 20:04:40 | INFO |   Índice criado: idx_egressos_faixa
+2026-05-25 20:04:40 | SUCCESS | Índices criados.
+2026-05-25 20:04:40 | SUCCESS | Carga no banco concluída com sucesso!
+2026-05-25 20:04:40 | SUCCESS | ============================================================
+2026-05-25 20:04:40 | SUCCESS |   Pipeline concluído com sucesso!
+2026-05-25 20:04:40 | SUCCESS | ============================================================
+2026-05-25 20:23:14 | INFO | ============================================================
+2026-05-25 20:23:14 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-25 20:23:14 | INFO | ============================================================
+2026-05-25 20:23:14 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-25 20:23:14 | INFO | Extraindo ano 2014...
+2026-05-25 20:23:14 | INFO | [2014] 42 fragmentos
+2026-05-25 20:23:18 | INFO | [2014] Montando DataFrame...
+2026-05-25 20:23:18 | SUCCESS | [2014] 51,774 estudantes | 29 colunas
+2026-05-25 20:23:18 | INFO | Extraindo ano 2017...
+2026-05-25 20:23:18 | INFO | [2017] 42 fragmentos
+2026-05-25 20:23:21 | INFO | [2017] Montando DataFrame...
+2026-05-25 20:23:21 | SUCCESS | [2017] 51,009 estudantes | 29 colunas
+2026-05-25 20:23:21 | INFO | Extraindo ano 2021...
+2026-05-25 20:23:21 | INFO | [2021] 43 fragmentos
+2026-05-25 20:23:24 | INFO | [2021] Montando DataFrame...
+2026-05-25 20:23:24 | SUCCESS | [2021] 62,031 estudantes | 29 colunas
+2026-05-25 20:23:24 | SUCCESS | Extração concluída: 164,814 registros totais
+2026-05-25 20:23:24 | INFO |   164,814 registros extraídos
+2026-05-25 20:23:24 | INFO | ▶ ETAPA 2/4: Transformação
+2026-05-25 20:23:24 | INFO | === Iniciando transformação dos dados ===
+2026-05-25 20:23:24 | INFO | Convertendo tipos de dados...
+2026-05-25 20:23:25 | INFO | Antes do filtro de nota válida: 164,814 registros
+2026-05-25 20:23:25 | INFO | Após filtro: 127,243 registros
+2026-05-25 20:23:25 | INFO | Normalizando notas por ano...
+2026-05-25 20:23:25 | INFO | Criando faixa de nota (baixo / médio / alto)...
+2026-05-25 20:23:25 | INFO | Distribuição das faixas:
+FAIXA_NOTA
+alto     43247
+baixo    42015
+medio    41981
+Name: count, dtype: int64
+2026-05-25 20:23:25 | INFO | Mapeando códigos para rótulos...
+2026-05-25 20:23:25 | INFO | Preparando features para ML...
+2026-05-25 20:23:26 | SUCCESS | Transformação concluída: 127,243 registros, 38 colunas
+2026-05-25 20:23:26 | INFO | Colunas finais: ['NU_ANO', 'CO_CURSO', 'CO_CATEGAD', 'CO_ORGACAD', 'CO_GRUPO', 'CO_MODALIDADE', 'CO_MUNIC_CURSO', 'CO_UF_CURSO', 'CO_REGIAO_CURSO', 'QE_I04', 'QE_I05', 'QE_I08', 'QE_I17', 'QE_I18', 'QE_I19', 'QE_I21', 'QE_I23', 'NT_GER', 'NT_FG', 'NT_CE', 'QE_I01', 'QE_I02', 'QI_1', 'QI_2', 'QI_4', 'QI_5', 'QI_7', 'NT_GER_NORM', 'FAIXA_NOTA', 'REGIAO_LABEL', 'CATEGAD_LABEL', 'CURSO_LABEL', 'RENDA_LABEL', 'ESCOLA_EM_LABEL', 'MODALIDADE_LABEL', 'TIPO_ENSINO', 'UF_SIGLA', 'UF_NOME']
+2026-05-25 20:23:26 | INFO | ▶ ETAPA 3/4: Machine Learning
+2026-05-25 20:23:26 | INFO | === Iniciando pipeline de Machine Learning ===
+2026-05-25 20:23:26 | INFO | Treinando K-Means com 4 clusters...
+2026-05-25 20:23:28 | SUCCESS | K-Means salvo em: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/models/kmeans_pipeline.joblib
+2026-05-25 20:23:28 | INFO |   Cluster 0: 65,451 estudantes
+2026-05-25 20:23:28 | INFO |   Cluster 1: 27,646 estudantes
+2026-05-25 20:23:28 | INFO |   Cluster 2: 29,014 estudantes
+2026-05-25 20:23:28 | INFO |   Cluster 3: 5,132 estudantes
+2026-05-25 20:23:28 | INFO | Treinando Random Forest...
+2026-05-25 20:23:30 | SUCCESS | Random Forest — acurácia no teste: 95.60%
+2026-05-25 20:23:30 | INFO | Importância das features:
+2026-05-25 20:23:30 | INFO |   QE_I05: 0.2856
+2026-05-25 20:23:30 | INFO |   QE_I19: 0.1932
+2026-05-25 20:23:30 | INFO |   QE_I18: 0.1595
+2026-05-25 20:23:30 | INFO |   QE_I08: 0.1485
+2026-05-25 20:23:30 | INFO |   QE_I02: 0.0983
+2026-05-25 20:23:30 | INFO |   QE_I04: 0.0776
+2026-05-25 20:23:30 | INFO |   QE_I17: 0.0147
+2026-05-25 20:23:30 | INFO |   CO_CATEGAD: 0.0118
+2026-05-25 20:23:30 | INFO |   CO_REGIAO_CURSO: 0.0109
+2026-05-25 20:23:31 | SUCCESS | Random Forest salvo em: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/models/random_forest.joblib
+2026-05-25 20:23:31 | INFO | Aplicando PCA para visualização 2D...
+2026-05-25 20:23:31 | INFO | PCA: variância explicada — PC1: 63.4%, PC2: 12.8%, total: 76.2%
+2026-05-25 20:23:31 | SUCCESS | Pipeline de ML concluído.
+2026-05-25 20:23:31 | INFO |   Acurácia Random Forest: 95.60%
+2026-05-25 20:23:31 | INFO | ▶ ETAPA 4/4: Carga no PostgreSQL
+2026-05-25 20:23:31 | INFO | === Iniciando carga no PostgreSQL ===
+2026-05-25 20:23:31 | SUCCESS | Conexão com PostgreSQL estabelecida.
+2026-05-25 20:23:31 | INFO | Carregando 127,243 registros na tabela 'egressos'...
+2026-05-25 20:25:12 | SUCCESS | Tabela 'egressos' populada com 127,243 registros.
+2026-05-25 20:25:12 | INFO | Salvando métricas de ML no banco...
+2026-05-25 20:25:12 | SUCCESS | Tabela 'ml_metricas' populada com 15 registros.
+2026-05-25 20:25:12 | INFO | Criando índices no banco...
+2026-05-25 20:25:12 | INFO |   Índice criado: idx_egressos_ano
+2026-05-25 20:25:12 | INFO |   Índice criado: idx_egressos_curso
+2026-05-25 20:25:12 | INFO |   Índice criado: idx_egressos_regiao
+2026-05-25 20:25:12 | INFO |   Índice criado: idx_egressos_cluster
+2026-05-25 20:25:12 | INFO |   Índice criado: idx_egressos_faixa
+2026-05-25 20:25:13 | INFO |   Índice criado: idx_egressos_modalidade
+2026-05-25 20:25:13 | INFO |   Índice criado: idx_egressos_uf
+2026-05-25 20:25:13 | INFO |   Índice criado: idx_egressos_municipio
+2026-05-25 20:25:13 | INFO |   Índice criado: idx_egressos_tipo
+2026-05-25 20:25:13 | SUCCESS | Índices criados.
+2026-05-25 20:25:13 | SUCCESS | Carga no banco concluída com sucesso!
+2026-05-25 20:25:13 | SUCCESS | ============================================================
+2026-05-25 20:25:13 | SUCCESS |   Pipeline concluído com sucesso!
+2026-05-25 20:25:13 | SUCCESS | ============================================================
+2026-05-26 18:43:25 | INFO | ============================================================
+2026-05-26 18:43:25 | INFO |   Pipeline ETL — Análise de Egressos ENADE
+2026-05-26 18:43:25 | INFO | ============================================================
+2026-05-26 18:43:25 | INFO | ▶ ETAPA 1/4: Extração
+2026-05-26 18:43:25 | INFO | Extraindo ano 2014...
+2026-05-26 18:43:25 | INFO | [2014] 42 fragmentos
+2026-05-26 18:43:30 | INFO | [2014] Montando DataFrame...
+2026-05-26 18:43:30 | SUCCESS | [2014] 51,774 estudantes | 31 colunas
+2026-05-26 18:43:30 | INFO | Extraindo ano 2017...
+2026-05-26 18:43:30 | INFO | [2017] 42 fragmentos
+2026-05-26 18:43:34 | INFO | [2017] Montando DataFrame...
+2026-05-26 18:43:34 | SUCCESS | [2017] 51,009 estudantes | 31 colunas
+2026-05-26 18:43:34 | INFO | Extraindo ano 2021...
+2026-05-26 18:43:34 | INFO | [2021] 43 fragmentos
+2026-05-26 18:43:37 | INFO | [2021] Montando DataFrame...
+2026-05-26 18:43:37 | SUCCESS | [2021] 62,031 estudantes | 31 colunas
+2026-05-26 18:43:37 | SUCCESS | Extração concluída: 164,814 registros totais
+2026-05-26 18:43:37 | INFO |   164,814 registros extraídos
+2026-05-26 18:43:37 | INFO | ▶ ETAPA 2/4: Transformação
+2026-05-26 18:43:37 | INFO | === Iniciando transformação dos dados ===
+2026-05-26 18:43:37 | INFO | Convertendo tipos de dados...
+2026-05-26 18:43:39 | INFO | Antes do filtro de nota válida: 164,814 registros
+2026-05-26 18:43:39 | INFO | Após filtro: 127,243 registros
+2026-05-26 18:43:39 | INFO | Normalizando notas por ano...
+2026-05-26 18:43:39 | INFO | Criando faixa de nota (baixo / médio / alto)...
+2026-05-26 18:43:39 | INFO | Distribuição das faixas:
+FAIXA_NOTA
+alto     43247
+baixo    42015
+medio    41981
+Name: count, dtype: int64
+2026-05-26 18:43:39 | INFO | Mapeando códigos para rótulos...
+2026-05-26 18:43:39 | INFO | Preparando features para ML...
+2026-05-26 18:43:40 | SUCCESS | Transformação concluída: 127,243 registros, 40 colunas
+2026-05-26 18:43:40 | INFO | Colunas finais: ['NU_ANO', 'CO_CURSO', 'CO_IES', 'CO_CATEGAD', 'CO_ORGACAD', 'CO_GRUPO', 'CO_MODALIDADE', 'CO_MUNIC_CURSO', 'CO_UF_CURSO', 'CO_REGIAO_CURSO', 'QE_I04', 'QE_I05', 'QE_I08', 'QE_I17', 'QE_I18', 'QE_I19', 'QE_I21', 'QE_I23', 'NT_GER', 'NT_FG', 'NT_CE', 'QE_I01', 'QE_I02', 'QI_1', 'QI_2', 'QI_4', 'QI_5', 'QI_7', 'NO_IES', 'NT_GER_NORM', 'FAIXA_NOTA', 'REGIAO_LABEL', 'CATEGAD_LABEL', 'CURSO_LABEL', 'RENDA_LABEL', 'ESCOLA_EM_LABEL', 'MODALIDADE_LABEL', 'TIPO_ENSINO', 'UF_SIGLA', 'UF_NOME']
+2026-05-26 18:43:41 | INFO | ▶ ETAPA 3/4: Machine Learning
+2026-05-26 18:43:41 | INFO | === Iniciando pipeline de Machine Learning ===
+2026-05-26 18:43:41 | INFO | Treinando K-Means com 4 clusters...
+2026-05-26 18:43:42 | SUCCESS | K-Means salvo em: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/models/kmeans_pipeline.joblib
+2026-05-26 18:43:42 | INFO |   Cluster 0: 65,451 estudantes
+2026-05-26 18:43:42 | INFO |   Cluster 1: 27,646 estudantes
+2026-05-26 18:43:42 | INFO |   Cluster 2: 29,014 estudantes
+2026-05-26 18:43:42 | INFO |   Cluster 3: 5,132 estudantes
+2026-05-26 18:43:42 | INFO | Treinando Random Forest...
+2026-05-26 18:43:45 | SUCCESS | Random Forest — acurácia no teste: 95.60%
+2026-05-26 18:43:45 | INFO | Importância das features:
+2026-05-26 18:43:45 | INFO |   QE_I05: 0.2856
+2026-05-26 18:43:45 | INFO |   QE_I19: 0.1932
+2026-05-26 18:43:45 | INFO |   QE_I18: 0.1595
+2026-05-26 18:43:45 | INFO |   QE_I08: 0.1485
+2026-05-26 18:43:45 | INFO |   QE_I02: 0.0983
+2026-05-26 18:43:45 | INFO |   QE_I04: 0.0776
+2026-05-26 18:43:45 | INFO |   QE_I17: 0.0147
+2026-05-26 18:43:45 | INFO |   CO_CATEGAD: 0.0118
+2026-05-26 18:43:45 | INFO |   CO_REGIAO_CURSO: 0.0109
+2026-05-26 18:43:45 | SUCCESS | Random Forest salvo em: /home/mikaelalves/Documentos/TCC/projeto-tcc-etl/projeto-tcc/etl/data/models/random_forest.joblib
+2026-05-26 18:43:45 | INFO | Aplicando PCA para visualização 2D...
+2026-05-26 18:43:45 | INFO | PCA: variância explicada — PC1: 63.4%, PC2: 12.8%, total: 76.2%
+2026-05-26 18:43:45 | SUCCESS | Pipeline de ML concluído.
+2026-05-26 18:43:45 | INFO |   Acurácia Random Forest: 95.60%
+2026-05-26 18:43:45 | INFO | ▶ ETAPA 4/4: Carga no PostgreSQL
+2026-05-26 18:43:45 | INFO | === Iniciando carga no PostgreSQL ===
+2026-05-26 18:43:45 | SUCCESS | Conexão com PostgreSQL estabelecida.
+2026-05-26 18:43:45 | INFO | Carregando 127,243 registros na tabela 'egressos'...
+2026-05-26 18:45:26 | SUCCESS | Tabela 'egressos' populada com 127,243 registros.
+2026-05-26 18:45:26 | INFO | Salvando métricas de ML no banco...
+2026-05-26 18:45:26 | SUCCESS | Tabela 'ml_metricas' populada com 15 registros.
+2026-05-26 18:45:26 | INFO | Criando índices no banco...
+2026-05-26 18:45:26 | INFO |   Índice criado: idx_egressos_ano
+2026-05-26 18:45:26 | INFO |   Índice criado: idx_egressos_curso
+2026-05-26 18:45:26 | INFO |   Índice criado: idx_egressos_regiao
+2026-05-26 18:45:26 | INFO |   Índice criado: idx_egressos_cluster
+2026-05-26 18:45:26 | INFO |   Índice criado: idx_egressos_faixa
+2026-05-26 18:45:26 | INFO |   Índice criado: idx_egressos_modalidade
+2026-05-26 18:45:26 | INFO |   Índice criado: idx_egressos_uf
+2026-05-26 18:45:26 | INFO |   Índice criado: idx_egressos_municipio
+2026-05-26 18:45:26 | INFO |   Índice criado: idx_egressos_tipo
+2026-05-26 18:45:26 | INFO |   Índice criado: idx_egressos_ies
+2026-05-26 18:45:26 | SUCCESS | Índices criados.
+2026-05-26 18:45:26 | SUCCESS | Carga no banco concluída com sucesso!
+2026-05-26 18:45:26 | SUCCESS | ============================================================
+2026-05-26 18:45:26 | SUCCESS |   Pipeline concluído com sucesso!
+2026-05-26 18:45:26 | SUCCESS | ============================================================
