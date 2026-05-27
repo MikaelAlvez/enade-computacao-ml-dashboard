@@ -5,7 +5,8 @@ etl/data/processed/
 etl/data/models/
 etl/__pycache__/
 etl/**/__pycache__/
-etl/*.pyc
+**/__pycache__/
+**/*.pyc
 
 # Web
 web/node_modules/
@@ -16,3 +17,4 @@ web/app/generated/
 # Geral
 .DS_Store
 *.pyc
+.gitmodules
