@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public"]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model egressos {
+  id                 BigInt  @id
+  nu_ano             BigInt?
+  co_grupo           BigInt?
+  curso_nome         String?
+  co_regiao          Int?    @db.SmallInt
+  regiao_nome        String?
+  co_categad         Int?    @db.SmallInt
+  tipo_ies           String?
+  co_orgacad         BigInt?
+  co_modalidade      BigInt?
+  modalidade         String?
+  co_uf              BigInt?
+  uf_sigla           String?
+  uf_nome            String?
+  co_municipio       BigInt?
+  co_ies             String?
+  no_ies             String?
+  tipo_ensino        String?
+  nt_ger             Float?
+  nt_fg              Float?
+  nt_ce              Float?
+  nt_ger_norm        Float?
+  faixa_nota         String?
+  faixa_prevista     String?
+  qe_estado_civil    String?
+  qe_escola_em       Int?    @db.SmallInt
+  escola_em_nome     String?
+  qe_raca_cor        Int?    @db.SmallInt
+  qe_renda           Int?    @db.SmallInt
+  renda_nome         String?
+  qe_financiamento   Int?    @db.SmallInt
+  qe_horas_estudo    Int?    @db.SmallInt
+  qe_trabalha        Int?    @db.SmallInt
+  qe_horas_trabalho  Int?    @db.SmallInt
+  qe_uso_biblioteca  String?
+  qe_acesso_internet String?
+  qi_laboratorios    String?
+  qi_biblioteca      String?
+  qi_docentes        String?
+  qi_projeto_ped     String?
+  qi_extracurr       String?
+  cluster_id         Int?
+  pca_x              Float?
+  pca_y              Float?
+
+  @@index([nu_ano], map: "idx_egressos_ano")
+  @@index([cluster_id], map: "idx_egressos_cluster")
+  @@index([co_grupo], map: "idx_egressos_curso")
+  @@index([faixa_nota], map: "idx_egressos_faixa")
+  @@index([co_regiao], map: "idx_egressos_regiao")
+  @@index([co_modalidade], map: "idx_egressos_modalidade")
+  @@index([co_municipio], map: "idx_egressos_municipio")
+  @@index([tipo_ensino], map: "idx_egressos_tipo")
+  @@index([co_uf], map: "idx_egressos_uf")
+  @@index([id], map: "ix_egressos_id")
+  @@schema("public")
+  @@index([co_ies], map: "idx_egressos_ies")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model ml_metricas {
+  id      BigInt  @id
+  metrica String?
+  chave   String?
+  valor   Float?
+  detalhe String?
+
+  @@index([id], map: "ix_ml_metricas_id")
+  @@schema("public")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model municipios {
+  co_municipio BigInt  @id
+  nome         String?
+  uf_sigla     String?
+  uf_nome      String?
+
+  @@index([co_municipio], map: "idx_municipios_co")
+  @@index([uf_sigla], map: "idx_municipios_uf")
+  @@schema("public")
+}

@@ -1,0 +1,39 @@
+    column_name     |    data_type     
+--------------------+------------------
+ id                 | bigint
+ nu_ano             | bigint
+ co_grupo           | bigint
+ curso_nome         | text
+ co_regiao          | smallint
+ regiao_nome        | text
+ co_categad         | smallint
+ tipo_ies           | text
+ co_orgacad         | bigint
+ nt_ger             | double precision
+ nt_fg              | double precision
+ nt_ce              | double precision
+ nt_ger_norm        | double precision
+ faixa_nota         | text
+ faixa_prevista     | text
+ qe_estado_civil    | text
+ qe_escola_em       | smallint
+ escola_em_nome     | text
+ qe_raca_cor        | smallint
+ qe_renda           | smallint
+ renda_nome         | text
+ qe_financiamento   | smallint
+ qe_horas_estudo    | smallint
+ qe_trabalha        | smallint
+ qe_horas_trabalho  | smallint
+ qe_uso_biblioteca  | text
+ qe_acesso_internet | text
+ qi_laboratorios    | text
+ qi_biblioteca      | text
+ qi_docentes        | text
+ qi_projeto_ped     | text
+ qi_extracurr       | text
+ cluster_id         | integer
+ pca_x              | double precision
+ pca_y              | double precision
+(35 rows)
+

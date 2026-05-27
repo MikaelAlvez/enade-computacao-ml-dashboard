@@ -3,8 +3,6 @@ etl/.venv/
 etl/data/raw/
 etl/data/processed/
 etl/data/models/
-etl/__pycache__/
-etl/**/__pycache__/
 **/__pycache__/
 **/*.pyc
 
@@ -16,5 +14,4 @@ web/app/generated/
 
 # Geral
 .DS_Store
-*.pyc
 .gitmodules
