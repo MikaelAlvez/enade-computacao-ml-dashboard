@@ -10,7 +10,6 @@ etl/data/models/
 web/node_modules/
 web/.next/
 web/.env
-web/app/generated/
 
 # Geral
 .DS_Store
