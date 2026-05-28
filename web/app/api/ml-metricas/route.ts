@@ -22,7 +22,7 @@ export async function GET() {
     const metricas = await prisma.ml_metricas.findMany();
 
     const acuracia = metricas.find(
-      (m) => m.metrica === "acuracia_geral"
+      (m: any) => m.metrica === "acuracia_geral"
     )?.valor;
 
     const importancias = metricas

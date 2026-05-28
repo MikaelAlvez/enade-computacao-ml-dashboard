@@ -1,4 +1,4 @@
-# 📊 enade-computacao-ml-dashboard
+# enade-computacao-ml-dashboard
 
 > Análise de perfil de egressos de cursos de Computação a partir dos microdados do ENADE (2014, 2017, 2021) com pipeline ETL em Python, modelos de Machine Learning e dashboard interativo em Next.js.
 
@@ -8,13 +8,7 @@
 
 ---
 
-## 🖥️ Demo
-
-![Dashboard Preview](docs/dashboard-preview.png)
-
----
-
-## 📌 Sobre o Projeto
+## Sobre o Projeto
 
 Este trabalho propõe e implementa uma solução integrada para análise do perfil de egressos de cursos de Computação a partir dos microdados públicos do ENADE, disponibilizados pelo INEP. A solução combina:
 
@@ -37,21 +31,7 @@ Este trabalho propõe e implementa uma solução integrada para análise do perf
 
 ---
 
-## 🚀 Principais Resultados
-
-| Indicador | Valor |
-|-----------|-------|
-| Estudantes analisados | 127.243 |
-| Edições do ENADE | 2014, 2017, 2021 |
-| Queda na nota média (2014→2021) | 49,6 → 35,1 pts (-29,2%) |
-| Desigualdade por renda | 4,8× entre extremos |
-| Acurácia Random Forest | 97,18% |
-| Variância explicada (PCA) | 76,2% (PC1: 63,4% + PC2: 12,8%) |
-| Clusters identificados | 4 perfis distintos |
-
----
-
-## 🗂️ Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 enade-computacao-ml-dashboard/
@@ -92,7 +72,7 @@ enade-computacao-ml-dashboard/
 
 ---
 
-## 🛠️ Tecnologias
+## Tecnologias
 
 ### ETL & Machine Learning
 | Tecnologia | Versão | Uso |
@@ -115,7 +95,7 @@ enade-computacao-ml-dashboard/
 
 ---
 
-## ⚙️ Como Executar
+## Como Executar
 
 ### Pré-requisitos
 
@@ -200,7 +180,7 @@ Acesse **http://localhost:3000/dashboard**
 
 ---
 
-## 📊 Funcionalidades do Dashboard
+## Funcionalidades do Dashboard
 
 ### Filtros disponíveis
 - **Ano** — 2014, 2017 ou 2021
@@ -219,7 +199,7 @@ Acesse **http://localhost:3000/dashboard**
 
 ---
 
-## 🤖 Modelos de Machine Learning
+## Modelos de Machine Learning
 
 ### K-Means (K=4)
 Identificou 4 perfis distintos de egressos:
@@ -238,13 +218,13 @@ Identificou 4 perfis distintos de egressos:
 
 ---
 
-## 📄 Licença
+## Licença
 
 Este projeto foi desenvolvido como Trabalho de Conclusão de Curso na Universidade Federal Rural do Semi-Árido (UFERSA) e está disponível para fins acadêmicos.
 
 ---
 
-## 📚 Referências
+## Referências
 
 - BRASIL. Lei nº 10.861/2004 — Sistema Nacional de Avaliação da Educação Superior (SINAES)
 - INEP. Microdados do ENADE 2014, 2017 e 2021. Disponível em: https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enade
