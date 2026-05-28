@@ -4,14 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate --no-engine && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate --no-engine"
   },
   "dependencies": {
-    "@prisma/client": "^7.8.0",
-    "@prisma/extension-accelerate": "^2.0.2",
+    "@prisma/client": "^6.19.3",
+    "@prisma/extension-accelerate": "^2.0.1",
     "@tanstack/react-query": "^5.100.10",
     "axios": "^1.16.1",
     "next": "16.2.6",

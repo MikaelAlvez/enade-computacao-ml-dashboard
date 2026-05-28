@@ -14,3 +14,4 @@ web/.env
 # Geral
 .DS_Store
 .gitmodules
+web/app/generated/
