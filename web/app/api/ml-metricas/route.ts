@@ -26,8 +26,8 @@ export async function GET() {
     )?.valor;
 
     const importancias = metricas
-      .filter((m) => m.metrica === "importancia_feature")
-      .map((m) => ({
+      .filter((m: any) => m.metrica === "importancia_feature")
+      .map((m: any) => ({
         feature: m.chave,
         nome: m.chave ? NOMES_FEATURES[m.chave] ?? m.chave : m.chave,
         importancia: m.valor,
@@ -36,8 +36,8 @@ export async function GET() {
       .sort((a, b) => (b.importancia ?? 0) - (a.importancia ?? 0));
 
     const metricas_classe = metricas
-      .filter((m) => m.metrica === "metricas_classe")
-      .map((m) => ({
+      .filter((m: any) => m.metrica === "metricas_classe")
+      .map((m: any) => ({
         classe: m.chave,
         f1_score: m.valor,
         detalhe: m.detalhe ? JSON.parse(m.detalhe) : null,
