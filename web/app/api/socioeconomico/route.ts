@@ -42,13 +42,13 @@ export async function GET(req: NextRequest) {
     ]);
 
     return NextResponse.json(serialize({
-      renda:   renda.map(r=>({ nome:r.renda_nome, total:r._count.qe_renda, media:Math.round((r._avg.nt_ger??0)*10)/10 })),
-      escola:  escola.map(e=>({ nome:e.escola_em_nome, total:e._count.escola_em_nome, media:Math.round((e._avg.nt_ger??0)*10)/10 })),
-      raca:    raca.map(r=>({ nome:MAPA_RACA[r.qe_raca_cor??0]??"N/A", total:r._count.qe_raca_cor, media:Math.round((r._avg.nt_ger??0)*10)/10 })),
-      trabalha:trabalha.map(t=>({ nome:MAPA_TRABALHA[t.qe_trabalha??0]??"N/A", total:t._count.qe_trabalha, media:Math.round((t._avg.nt_ger??0)*10)/10 })),
-      estudo:  estudo.map(e=>({ nome:MAPA_ESTUDO[e.qe_horas_estudo??0]??"N/A", total:e._count.qe_horas_estudo, media:Math.round((e._avg.nt_ger??0)*10)/10 })),
-      tipo_ies:tipoIes.map(t=>({ nome:t.tipo_ies, total:t._count.tipo_ies, media:Math.round((t._avg.nt_ger??0)*10)/10 })),
-      evolucao_renda: evolucaoRenda.map(e=>({ ano:Number(e.nu_ano), renda:e.renda_nome, media:Math.round((e._avg.nt_ger??0)*10)/10 })),
+      renda:   renda.map((r: any)=>({ nome:r.renda_nome, total:r._count.qe_renda, media:Math.round((r._avg.nt_ger??0)*10)/10 })),
+      escola:  escola.map((e: any)=>({ nome:e.escola_em_nome, total:e._count.escola_em_nome, media:Math.round((e._avg.nt_ger??0)*10)/10 })),
+      raca:    raca.map((r: any)=>({ nome:MAPA_RACA[r.qe_raca_cor??0]??"N/A", total:r._count.qe_raca_cor, media:Math.round((r._avg.nt_ger??0)*10)/10 })),
+      trabalha:trabalha.map((t: any)=>({ nome:MAPA_TRABALHA[t.qe_trabalha??0]??"N/A", total:t._count.qe_trabalha, media:Math.round((t._avg.nt_ger??0)*10)/10 })),
+      estudo:  estudo.map((e: any)=>({ nome:MAPA_ESTUDO[e.qe_horas_estudo??0]??"N/A", total:e._count.qe_horas_estudo, media:Math.round((e._avg.nt_ger??0)*10)/10 })),
+      tipo_ies:tipoIes.map((t: any)=>({ nome:t.tipo_ies, total:t._count.tipo_ies, media:Math.round((t._avg.nt_ger??0)*10)/10 })),
+      evolucao_renda: evolucaoRenda.map((e: any)=>({ ano:Number(e.nu_ano), renda:e.renda_nome, media:Math.round((e._avg.nt_ger??0)*10)/10 })),
     }));
   } catch(error) {
     console.error("[/api/socioeconomico]",error);

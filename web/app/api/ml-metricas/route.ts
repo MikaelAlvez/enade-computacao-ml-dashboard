@@ -33,7 +33,7 @@ export async function GET() {
         importancia: m.valor,
         percentual: Math.round((m.valor ?? 0) * 100 * 10) / 10,
       }))
-      .sort((a, b) => (b.importancia ?? 0) - (a.importancia ?? 0));
+      .sort((a: any, b: any) => (b.importancia ?? 0) - (a.importancia ?? 0));
 
     const metricas_classe = metricas
       .filter((m: any) => m.metrica === "metricas_classe")
