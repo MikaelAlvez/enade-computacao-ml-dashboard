@@ -1,57 +1,70 @@
-// app/api/ml-metricas/route.ts
-// Retorna acurácia e importância das features do Random Forest.
-
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Mapa de códigos para nomes legíveis
-const NOMES_FEATURES: Record<string, string> = {
-  QE_I08: "Financiamento estudantil",
-  QE_I02: "Tipo de escola no EM",
-  QE_I04: "Raça/Cor",
-  QE_I05: "Renda familiar",
-  QE_I19: "Horas de trabalho",
-  QE_I17: "Horas de estudo",
-  QE_I18: "Trabalha atualmente",
-  CO_CATEGAD: "Categoria administrativa IES",
-  CO_REGIAO_CURSO: "Região geográfica",
-};
-
 export async function GET() {
   try {
-    const metricas = await prisma.ml_metricas.findMany();
+    const registros = await prisma.ml_metricas.findMany({
+      orderBy: { id: "asc" },
+    });
 
-    const acuracia = metricas.find(
-      (m: any) => m.metrica === "acuracia_geral"
-    )?.valor;
+    // ── Acurácia geral ──────────────────────────────────────
+    const acuraciaRow = registros.find(
+      (r: any) => r.metrica === "acuracia_geral"
+    );
+    const acuracia = acuraciaRow ? Number(acuraciaRow.valor) : null;
 
-    const importancias = metricas
-      .filter((m: any) => m.metrica === "importancia_feature")
-      .map((m: any) => ({
-        feature: m.chave,
-        nome: m.chave ? NOMES_FEATURES[m.chave] ?? m.chave : m.chave,
-        importancia: m.valor,
-        percentual: Math.round((m.valor ?? 0) * 100 * 10) / 10,
+    // ── Importância das features ────────────────────────────
+    const importancias = registros
+      .filter((r: any) => r.metrica === "importancia_feature")
+      .map((r: any) => ({
+        feature: r.chave,
+        valor: Number(r.valor),
       }))
-      .sort((a: any, b: any) => (b.importancia ?? 0) - (a.importancia ?? 0));
+      .sort((a: any, b: any) => b.valor - a.valor);
 
-    const metricas_classe = metricas
-      .filter((m: any) => m.metrica === "metricas_classe")
-      .map((m: any) => ({
-        classe: m.chave,
-        f1_score: m.valor,
-        detalhe: m.detalhe ? JSON.parse(m.detalhe) : null,
-      }));
+    // ── Métricas por classe ─────────────────────────────────
+    const classesPrincipais = ["alto", "medio", "baixo"];
+    const metricas_classe = registros
+      .filter(
+        (r: any) =>
+          r.metrica === "metricas_classe" &&
+          classesPrincipais.includes(r.chave)
+      )
+      .map((r: any) => {
+        const detalhe = r.detalhe ? JSON.parse(r.detalhe) : {};
+        return {
+          classe: r.chave,
+          f1: Number(r.valor),
+          precision: detalhe.precision ?? null,
+          recall: detalhe.recall ?? null,
+          support: detalhe.support ?? null,
+        };
+      });
+
+    // ── Matriz de confusão
+    const matrizRow = registros.find(
+      (r: any) => r.metrica === "matriz_confusao"
+    );
+    const matriz_confusao = matrizRow?.detalhe
+      ? JSON.parse(matrizRow.detalhe)
+      : null;
+    // Formato retornado:
+    // {
+    //   classes: ["alto", "medio", "baixo"],
+    //   matrix: [[8539, 111, 0], [405, 7496, 495], [0, 110, 8293]],
+    //   total_teste: 25449
+    // }
 
     return NextResponse.json({
       acuracia,
       importancias,
       metricas_classe,
+      matriz_confusao,
     });
   } catch (error) {
-    console.error("[/api/ml-metricas]", error);
+    console.error("[ml-metricas] Erro:", error);
     return NextResponse.json(
-      { error: "Erro ao buscar métricas" },
+      { error: "Erro ao buscar métricas de ML" },
       { status: 500 }
     );
   }
