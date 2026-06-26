@@ -16,16 +16,13 @@ const CORES_GRADIENTE = ["#4f46e5","#6366f1","#818cf8","#a5b4fc","#c7d2fe","#e0e
 const CORES_RENDA     = ["#ef4444","#f97316","#eab308","#84cc16","#22c55e","#10b981"];
 const CORES_RACA      = ["#94a3b8","#6366f1","#8b5cf6","#a78bfa","#c4b5fd","#ddd6fe"];
 const CORES_HABITO    = ["#534AB7","#7F77DD","#0F6E56","#1D9E75","#185FA5"];
+const CORES_SEXO      = ["#6366f1","#ec4899"];
+const CORES_RACA_G    = ["#94a3b8","#6366f1","#8b5cf6","#a78bfa","#c4b5fd","#ddd6fe"];
 const LINE_HABITO     = "#888780";
 
 // PCA
 const CORES_PCA  = ["#6366f1","#10b981","#f59e0b","#ef4444"];
-const NOMES_PCA  = [
-  "Desempenho médio",
-  "Baixo desempenho público",
-  "Baixo desempenho privado",
-  "Alto desempenho",
-];
+const NOMES_PCA  = ["Desempenho médio","Baixo desempenho público","Baixo desempenho privado","Alto desempenho"];
 const MEDIAS_PCA = [31.7, 62.6, 50.8, 74.9];
 const TOTAL_PCA  = [65451, 27646, 29014, 5132];
 
@@ -46,7 +43,6 @@ const REGIOES = [
   { value:"3", label:"Sul"              },
   { value:"4", label:"Centro-Oeste"     },
 ];
-
 const NOMES_FEATURE: Record<string,string> = {
   QE_I05:"Renda familiar", QE_I19:"Horas de trabalho",
   QE_I18:"Trabalha atualmente", QE_I08:"Financiamento estudantil",
@@ -68,8 +64,11 @@ type HabitosData  = { total:number; habitos:HabitoResult[] };
 type PontoCluster = { x:number; y:number; cluster_id:number; total:number; media_nota:number; r:number };
 type ImportItemApi = { feature:string; valor:number };
 type MetricaClasse = { classe:string; f1:number; precision:number; recall:number; support:number };
+type GeneroItem   = { sexo:string; codigo:string; total:number; pct:number; media_nota:number };
+type RacaItem     = { nome:string; codigo:string; total:number; pct:number; media_nota:number };
+type CruzItem     = { raca:string; codigo:string; feminino:number|null; masculino:number|null; total_f:number; total_m:number };
+type GeneroData   = { total:number; genero:GeneroItem[]; raca:RacaItem[]; cruzamento:CruzItem[] };
 
-// ── TT ────────────────────────────────────────────────────────
 const TT = { contentStyle:{ backgroundColor:"#1f2937", border:"none", borderRadius:8, fontSize:12 } };
 
 // ── Componentes base ──────────────────────────────────────────
@@ -145,7 +144,28 @@ const TooltipHabito = ({ active, payload, label }: { active?:boolean; payload?:a
   );
 };
 
-// ── Card de hábito ────────────────────────────────────────────
+// ── Tooltip Scatter ───────────────────────────────────────────
+const TooltipScatter = ({ active, payload }: { active?:boolean; payload?:any[] }) => {
+  if (!active||!payload?.length) return null;
+  const d = payload[0]?.payload as PontoCluster;
+  if (!d) return null;
+  return (
+    <div style={{background:"#1f2937",borderRadius:8,padding:"10px 14px",fontSize:12,border:"1px solid #374151"}}>
+      <p style={{color:CORES_PCA[d.cluster_id],fontWeight:500,margin:"0 0 4px"}}>
+        Cluster {d.cluster_id} — {NOMES_PCA[d.cluster_id]}
+      </p>
+      <p style={{color:"#9ca3af",margin:"2px 0"}}>PC1: {d.x.toFixed(3)} · PC2: {d.y.toFixed(3)}</p>
+      <p style={{color:"#9ca3af",margin:"2px 0"}}>
+        Estudantes: <strong style={{color:"#e5e7eb"}}>{d.total.toLocaleString("pt-BR")}</strong>
+      </p>
+      <p style={{color:"#9ca3af",margin:"2px 0"}}>
+        Média NT_GER: <strong style={{color:"#e5e7eb"}}>{MEDIAS_PCA[d.cluster_id].toFixed(1)} pts</strong>
+      </p>
+    </div>
+  );
+};
+
+// ── Card Hábito ───────────────────────────────────────────────
 function HabitoCard({ habito }: { habito:HabitoResult }) {
   return (
     <div className="bg-gray-900 rounded-2xl p-5 border border-gray-800">
@@ -176,49 +196,41 @@ function HabitoCard({ habito }: { habito:HabitoResult }) {
   );
 }
 
-// ── ScatterPCA melhorado ──────────────────────────────────────
+// ── ScatterPCA ────────────────────────────────────────────────
 function ScatterPCA({ clusterGrp }: { clusterGrp:{ id:number; data:PontoCluster[] }[] }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hidden,  setHidden]  = useState([false,false,false,false]);
   const [opacity, setOpacity] = useState(70);
-  const [tip, setTip] = useState<{
-    visible:boolean; x:number; y:number; p:(PontoCluster&{c:number})|null;
-  }>({ visible:false, x:0, y:0, p:null });
+  const [tip, setTip] = useState<{ visible:boolean; x:number; y:number; p:(PontoCluster&{c:number})|null }>
+    ({ visible:false, x:0, y:0, p:null });
 
   const xMin=-4, xMax=12, yMin=-4.5, yMax=4.5;
-  const PAD = { l:52, r:16, t:16, b:44 };
-  const VW=640, VH=340;
+  const PAD={l:52,r:16,t:16,b:44}; const VW=640, VH=340;
   const PW=VW-PAD.l-PAD.r, PH=VH-PAD.t-PAD.b;
+  const px=(x:number)=>PAD.l+((x-xMin)/(xMax-xMin))*PW;
+  const py=(y:number)=>PAD.t+(1-(y-yMin)/(yMax-yMin))*PH;
+  const pr=(n:number)=>Math.max(4,Math.min(36,Math.sqrt(n)*0.8));
 
-  const px = (x:number) => PAD.l+((x-xMin)/(xMax-xMin))*PW;
-  const py = (y:number) => PAD.t+(1-(y-yMin)/(yMax-yMin))*PH;
-  const pr = (n:number) => Math.max(4, Math.min(36, Math.sqrt(n)*0.8));
-
-  function handleEnter(e:React.MouseEvent<SVGCircleElement>, p:PontoCluster, c:number) {
-    const svg = svgRef.current; if (!svg) return;
-    const sr  = svg.getBoundingClientRect();
-    const scX = sr.width/VW, scY = sr.height/VH;
-    const cx  = px(p.x)*scX+sr.left, cy = py(p.y)*scY+sr.top;
-    const pr2 = svg.parentElement!.getBoundingClientRect();
-    let lft = cx-pr2.left+14, top = cy-pr2.top-10;
-    if (lft+210>pr2.width) lft = cx-pr2.left-220;
+  function handleEnter(e:React.MouseEvent<SVGCircleElement>,p:PontoCluster,c:number) {
+    const svg=svgRef.current; if (!svg) return;
+    const sr=svg.getBoundingClientRect();
+    const scX=sr.width/VW, scY=sr.height/VH;
+    const cx=px(p.x)*scX+sr.left, cy=py(p.y)*scY+sr.top;
+    const pr2=svg.parentElement!.getBoundingClientRect();
+    let lft=cx-pr2.left+14, top=cy-pr2.top-10;
+    if (lft+210>pr2.width) lft=cx-pr2.left-220;
     if (top<0) top=4;
-    setTip({ visible:true, x:lft, y:top, p:{ ...p, c } });
+    setTip({ visible:true, x:lft, y:top, p:{...p,c} });
   }
 
-  const xTicks = [-4,-2,0,4,8,12];
-  const yTicks = [-4,-2,0,2,4];
+  const xTicks=[-4,-2,0,4,8,12]; const yTicks=[-4,-2,0,2,4];
 
   return (
     <div className="bg-gray-900 rounded-2xl p-5 border border-gray-800">
       <p className="text-sm font-semibold text-gray-200 mb-0.5">Clusters K-Means — Visualização PCA</p>
-      <p className="text-xs text-gray-500 mb-3">
-        Tamanho do círculo ∝ nº de estudantes · clique na legenda para ocultar/mostrar
-      </p>
-
-      {/* Legenda interativa */}
+      <p className="text-xs text-gray-500 mb-3">Tamanho do círculo ∝ nº de estudantes · clique na legenda para ocultar/mostrar</p>
       <div className="flex flex-wrap gap-1 mb-3">
-        {NOMES_PCA.map((nome,c) => (
+        {NOMES_PCA.map((nome,c)=>(
           <button key={c} onClick={()=>setHidden(h=>h.map((v,i)=>i===c?!v:v))}
             className="flex items-center gap-2 px-2 py-1 rounded-lg text-xs transition-colors hover:bg-gray-800"
             style={{opacity:hidden[c]?0.35:1}}>
@@ -229,57 +241,30 @@ function ScatterPCA({ clusterGrp }: { clusterGrp:{ id:number; data:PontoCluster[
           </button>
         ))}
       </div>
-
       <div style={{position:"relative"}}>
-        <svg ref={svgRef} width="100%" viewBox={`0 0 ${VW} ${VH}`}
-          style={{display:"block",overflow:"visible"}}>
-
-          {/* Grid */}
+        <svg ref={svgRef} width="100%" viewBox={`0 0 ${VW} ${VH}`} style={{display:"block",overflow:"visible"}}>
           {yTicks.map(v=>(
             <line key={`y${v}`} x1={PAD.l} y1={py(v)} x2={VW-PAD.r} y2={py(v)}
-              stroke="rgba(255,255,255,0.06)" strokeWidth={0.5}
-              strokeDasharray={v===0?"none":"4 4"}/>
+              stroke="rgba(255,255,255,0.06)" strokeWidth={0.5} strokeDasharray={v===0?"none":"4 4"}/>
           ))}
           {xTicks.map(v=>(
             <line key={`x${v}`} x1={px(v)} y1={PAD.t} x2={px(v)} y2={VH-PAD.b}
-              stroke="rgba(255,255,255,0.06)" strokeWidth={0.5}
-              strokeDasharray={v===0?"none":"4 4"}/>
+              stroke="rgba(255,255,255,0.06)" strokeWidth={0.5} strokeDasharray={v===0?"none":"4 4"}/>
           ))}
-
-          {/* Eixos */}
-          <line x1={PAD.l} y1={PAD.t} x2={PAD.l} y2={VH-PAD.b}
-            stroke="rgba(255,255,255,0.15)" strokeWidth={0.5}/>
-          <line x1={PAD.l} y1={VH-PAD.b} x2={VW-PAD.r} y2={VH-PAD.b}
-            stroke="rgba(255,255,255,0.15)" strokeWidth={0.5}/>
-
-          {/* Ticks */}
+          <line x1={PAD.l} y1={PAD.t} x2={PAD.l} y2={VH-PAD.b} stroke="rgba(255,255,255,0.15)" strokeWidth={0.5}/>
+          <line x1={PAD.l} y1={VH-PAD.b} x2={VW-PAD.r} y2={VH-PAD.b} stroke="rgba(255,255,255,0.15)" strokeWidth={0.5}/>
           {xTicks.map(v=>(
-            <text key={`tx${v}`} x={px(v)} y={VH-PAD.b+14}
-              textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.3)">{v}</text>
+            <text key={`tx${v}`} x={px(v)} y={VH-PAD.b+14} textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.3)">{v}</text>
           ))}
           {yTicks.map(v=>(
-            <text key={`ty${v}`} x={PAD.l-6} y={py(v)}
-              textAnchor="end" dominantBaseline="central" fontSize={10} fill="rgba(255,255,255,0.3)">{v}</text>
+            <text key={`ty${v}`} x={PAD.l-6} y={py(v)} textAnchor="end" dominantBaseline="central" fontSize={10} fill="rgba(255,255,255,0.3)">{v}</text>
           ))}
-
-          {/* Rótulos eixo */}
-          <text x={PAD.l+PW/2} y={VH-4} textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.35)">
-            PC1 — perfil socioeconômico (63,4% da variância)
-          </text>
-          <text x={12} y={PAD.t+PH/2} textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.35)"
-            transform={`rotate(-90,12,${PAD.t+PH/2})`}>
-            PC2 — hábitos (12,8%)
-          </text>
-
-          {/* Origem */}
-          <circle cx={px(0)} cy={py(0)} r={3} fill="none"
-            stroke="rgba(255,255,255,0.12)" strokeWidth={0.5} strokeDasharray="3 3"/>
-
-          {/* Pontos */}
-          {clusterGrp.map(g =>
-            hidden[g.id] ? null : g.data.map((p,i) => (
-              <circle key={i}
-                cx={px(p.x)} cy={py(p.y)} r={pr(p.total)}
+          <text x={PAD.l+PW/2} y={VH-4} textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.35)">PC1 — perfil socioeconômico (63,4% da variância)</text>
+          <text x={12} y={PAD.t+PH/2} textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.35)" transform={`rotate(-90,12,${PAD.t+PH/2})`}>PC2 — hábitos (12,8%)</text>
+          <circle cx={px(0)} cy={py(0)} r={3} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth={0.5} strokeDasharray="3 3"/>
+          {clusterGrp.map(g=>
+            hidden[g.id]?null:g.data.map((p,i)=>(
+              <circle key={i} cx={px(p.x)} cy={py(p.y)} r={pr(p.total)}
                 fill={CORES_PCA[g.id]} fillOpacity={opacity/100}
                 stroke={CORES_PCA[g.id]} strokeWidth={1} strokeOpacity={0.9}
                 style={{cursor:"pointer",transition:"fill-opacity .15s"}}
@@ -288,30 +273,15 @@ function ScatterPCA({ clusterGrp }: { clusterGrp:{ id:number; data:PontoCluster[
             ))
           )}
         </svg>
-
-        {/* Tooltip */}
         {tip.visible && tip.p && (
-          <div style={{
-            position:"absolute", left:tip.x, top:tip.y,
-            background:"#111827", border:"0.5px solid rgba(255,255,255,0.12)",
-            borderRadius:8, padding:"10px 14px", fontSize:12,
-            pointerEvents:"none", zIndex:10, minWidth:190,
-          }}>
-            <p style={{color:CORES_PCA[tip.p.c],fontWeight:500,margin:"0 0 6px"}}>
-              Cluster {tip.p.c} — {NOMES_PCA[tip.p.c]}
-            </p>
+          <div style={{position:"absolute",left:tip.x,top:tip.y,background:"#111827",border:"0.5px solid rgba(255,255,255,0.12)",borderRadius:8,padding:"10px 14px",fontSize:12,pointerEvents:"none",zIndex:10,minWidth:190}}>
+            <p style={{color:CORES_PCA[tip.p.c],fontWeight:500,margin:"0 0 6px"}}>Cluster {tip.p.c} — {NOMES_PCA[tip.p.c]}</p>
             <p style={{color:"#9ca3af",margin:"2px 0"}}>PC1: {tip.p.x.toFixed(3)} · PC2: {tip.p.y.toFixed(3)}</p>
-            <p style={{color:"#9ca3af",margin:"2px 0"}}>
-              Estudantes: <strong style={{color:"#e5e7eb"}}>{tip.p.total.toLocaleString("pt-BR")}</strong>
-            </p>
-            <p style={{color:"#9ca3af",margin:"2px 0"}}>
-              Média NT_GER: <strong style={{color:"#e5e7eb"}}>{MEDIAS_PCA[tip.p.c].toFixed(1)} pts</strong>
-            </p>
+            <p style={{color:"#9ca3af",margin:"2px 0"}}>Estudantes: <strong style={{color:"#e5e7eb"}}>{tip.p.total.toLocaleString("pt-BR")}</strong></p>
+            <p style={{color:"#9ca3af",margin:"2px 0"}}>Média NT_GER: <strong style={{color:"#e5e7eb"}}>{MEDIAS_PCA[tip.p.c].toFixed(1)} pts</strong></p>
           </div>
         )}
       </div>
-
-      {/* Opacidade */}
       <div className="flex items-center gap-3 mt-3" style={{fontSize:12,color:"#6b7280"}}>
         <span>Opacidade</span>
         <input type="range" min={10} max={100} step={5} value={opacity}
@@ -322,57 +292,48 @@ function ScatterPCA({ clusterGrp }: { clusterGrp:{ id:number; data:PontoCluster[
   );
 }
 
-// ── Componente principal ──────────────────────────────────────
+// ── Dashboard ─────────────────────────────────────────────────
 export default function Dashboard() {
   const [aba, setAba] = useState(0);
-
   const [filtroAno,     setFiltroAno]     = useState("");
   const [filtroCurso,   setFiltroCurso]   = useState("");
   const [filtroTipo,    setFiltroTipo]    = useState("");
   const [filtroRegiao,  setFiltroRegiao]  = useState("");
   const [filtroUF,      setFiltroUF]      = useState("");
   const [filtroMunicio, setFiltroMunicio] = useState("");
-
   const [cursos,     setCursos]     = useState<CursoOpt[]>([]);
   const [tipos,      setTipos]      = useState<string[]>([]);
   const [todasUFs,   setTodasUFs]   = useState<UFOpt[]>([]);
   const [ufsRegiao,  setUfsRegiao]  = useState<UFOpt[]>([]);
   const [municipios, setMunicipios] = useState<MunicOpt[]>([]);
+  const [stats,       setStats]       = useState<Record<string,unknown>|null>(null);
+  const [socio,       setSocio]       = useState<Record<string,unknown>|null>(null);
+  const [clusters,    setClusters]    = useState<Record<string,unknown>|null>(null);
+  const [ml,          setMl]          = useState<Record<string,unknown>|null>(null);
+  const [habitos,     setHabitos]     = useState<HabitosData|null>(null);
+  const [generoData,  setGeneroData]  = useState<GeneroData|null>(null);
+  const [loading,     setLoading]     = useState(true);
 
-  const [stats,    setStats]    = useState<Record<string,unknown>|null>(null);
-  const [socio,    setSocio]    = useState<Record<string,unknown>|null>(null);
-  const [clusters, setClusters] = useState<Record<string,unknown>|null>(null);
-  const [ml,       setMl]       = useState<Record<string,unknown>|null>(null);
-  const [habitos,  setHabitos]  = useState<HabitosData|null>(null);
-  const [loading,  setLoading]  = useState(true);
-
-  useEffect(() => {
-    axios.get("/api/filtros").then(res => {
-      setCursos(res.data.cursos??[]);
-      setTipos(res.data.tipos??[]);
-      setTodasUFs(res.data.ufs??[]);
+  useEffect(()=>{
+    axios.get("/api/filtros").then(res=>{
+      setCursos(res.data.cursos??[]); setTipos(res.data.tipos??[]); setTodasUFs(res.data.ufs??[]);
     }).catch(console.error);
-  }, []);
+  },[]);
 
-  useEffect(() => {
+  useEffect(()=>{
     setFiltroUF(""); setFiltroMunicio(""); setMunicipios([]);
     if (filtroRegiao) setUfsRegiao(todasUFs.filter(u=>String(u.co_regiao)===filtroRegiao));
     else setUfsRegiao([]);
-  }, [filtroRegiao, todasUFs]);
+  },[filtroRegiao,todasUFs]);
 
-  useEffect(() => {
+  useEffect(()=>{
     setFiltroMunicio(""); setMunicipios([]);
-    if (filtroUF) {
-      axios.get(`/api/filtros?uf=${filtroUF}`)
-        .then(res=>setMunicipios(res.data??[]))
-        .catch(console.error);
-    }
-  }, [filtroUF]);
+    if (filtroUF) axios.get(`/api/filtros?uf=${filtroUF}`).then(res=>setMunicipios(res.data??[])).catch(console.error);
+  },[filtroUF]);
 
   const cursosVisiveis = filtroTipo
     ? cursos.filter(c=>{
-        const m:Record<number,string>={72:"Tecnologia",79:"Tecnologia",4003:"Bacharelado",
-          4004:"Bacharelado",4005:"Licenciatura",4006:"Bacharelado",5809:"Bacharelado",6409:"Tecnologia"};
+        const m:Record<number,string>={72:"Tecnologia",79:"Tecnologia",4003:"Bacharelado",4004:"Bacharelado",4005:"Licenciatura",4006:"Bacharelado",5809:"Bacharelado",6409:"Tecnologia"};
         return m[c.co_grupo]===filtroTipo;
       })
     : cursos;
@@ -399,85 +360,45 @@ export default function Dashboard() {
       axios.get(`/api/clusters${qs}`),
       axios.get("/api/ml-metricas"),
       axios.get(`/api/habitos${qs}`),
-    ]).then(([s,so,c,m,h])=>{
+      axios.get(`/api/genero${qs}`),
+    ]).then(([s,so,c,m,h,g])=>{
       if (cancelled) return;
-      setStats(s.data); setSocio(so.data);
-      setClusters(c.data); setMl(m.data); setHabitos(h.data);
+      setStats(s.data); setSocio(so.data); setClusters(c.data);
+      setMl(m.data); setHabitos(h.data); setGeneroData(g.data);
     }).catch(console.error)
       .finally(()=>{ if (!cancelled) setLoading(false); });
     return ()=>{ cancelled=true; };
   },[buildParams]);
 
-  const limparFiltros=()=>{
-    setFiltroAno(""); setFiltroCurso(""); setFiltroTipo("");
-    setFiltroRegiao(""); setFiltroUF(""); setFiltroMunicio("");
-  };
+  const limparFiltros=()=>{ setFiltroAno(""); setFiltroCurso(""); setFiltroTipo(""); setFiltroRegiao(""); setFiltroUF(""); setFiltroMunicio(""); };
   const temFiltro=filtroAno||filtroCurso||filtroTipo||filtroRegiao||filtroUF||filtroMunicio;
 
   // ── Dados derivados ───────────────────────────────────────
-  const faixaData  = ((stats?.distribuicao_faixa  as Item[])??[]).map((f:Item)=>({
-    name:f.faixa_nota as string??"N/A",
-    value:(f._count as Item).faixa_nota as number,
-    fill:CORES_FAIXA[(f.faixa_nota as keyof typeof CORES_FAIXA)]??"#94a3b8",
-  }));
-  const anoData    = ((stats?.distribuicao_ano    as Item[])??[]).map((a:Item)=>({
-    ano:String(a.nu_ano),
-    estudantes:(a._count as Item).nu_ano as number,
-    media:r((a._avg as Item).nt_ger as number),
-  }));
-  const cursoData  = ((stats?.distribuicao_curso  as Item[])??[]).map((c:Item)=>({
-    nome:(c.curso_nome as string)??"N/A",
-    total:(c._count as Item).co_grupo as number,
-    media:r((c._avg as Item).nt_ger as number),
-  }));
-  const regiaoData = ((stats?.distribuicao_regiao as Item[])??[]).map((ri:Item)=>({
-    nome:ri.regiao_nome as string??"N/A",
-    total:(ri._count as Item).co_regiao as number,
-    media:r((ri._avg as Item).nt_ger as number),
-  }));
+  const faixaData  = ((stats?.distribuicao_faixa  as Item[])??[]).map((f:Item)=>({ name:f.faixa_nota as string??"N/A", value:(f._count as Item).faixa_nota as number, fill:CORES_FAIXA[(f.faixa_nota as keyof typeof CORES_FAIXA)]??"#94a3b8" }));
+  const anoData    = ((stats?.distribuicao_ano    as Item[])??[]).map((a:Item)=>({ ano:String(a.nu_ano), estudantes:(a._count as Item).nu_ano as number, media:r((a._avg as Item).nt_ger as number) }));
+  const cursoData  = ((stats?.distribuicao_curso  as Item[])??[]).map((c:Item)=>({ nome:(c.curso_nome as string)??"N/A", total:(c._count as Item).co_grupo as number, media:r((c._avg as Item).nt_ger as number) }));
+  const regiaoData = ((stats?.distribuicao_regiao as Item[])??[]).map((ri:Item)=>({ nome:ri.regiao_nome as string??"N/A", total:(ri._count as Item).co_regiao as number, media:r((ri._avg as Item).nt_ger as number) }));
 
   type SocioItem = { nome:string; total:number; media:number };
   const rendaData    = (socio?.renda    as SocioItem[])??[];
   const escolaData   = (socio?.escola   as SocioItem[])??[];
-  const racaData     = (socio?.raca     as SocioItem[])??[];
   const trabalhaData = (socio?.trabalha as SocioItem[])??[];
   const estudoData   = (socio?.estudo   as SocioItem[])??[];
   const tipoIesData  = (socio?.tipo_ies as SocioItem[])??[];
 
   type EvolItem = { ano:number; renda:string; media:number };
   const evolRenda = (socio?.evolucao_renda as EvolItem[])??[];
-  const evolPivot = [2014,2017,2021].map(ano=>{
-    const entries:[string,unknown][]=[["ano",String(ano)]];
-    FAIXAS_RENDA.forEach(rn=>{
-      const found=evolRenda.find(e=>e.ano===ano&&e.renda===rn);
-      entries.push([rn,found?found.media:undefined]);
-    });
-    return Object.fromEntries(entries);
-  });
+  const evolPivot = [2014,2017,2021].map(ano=>{ const entries:[string,unknown][]=[["ano",String(ano)]]; FAIXAS_RENDA.forEach(rn=>{ const found=evolRenda.find(e=>e.ano===ano&&e.renda===rn); entries.push([rn,found?found.media:undefined]); }); return Object.fromEntries(entries); });
 
   const pontos     = (clusters?.pontos as PontoCluster[])??[];
   const clusterGrp = [0,1,2,3].map(id=>({ id, data:pontos.filter(p=>p.cluster_id===id) }));
-
-  type StatCluster = {
-    cluster_id:number;
-    _count:{cluster_id:number};
-    _avg:{nt_ger:number; nt_fg:number; nt_ce:number};
-  };
+  type StatCluster = { cluster_id:number; _count:{cluster_id:number}; _avg:{nt_ger:number;nt_fg:number;nt_ce:number} };
   const statsCluster = (clusters?.stats_por_cluster as StatCluster[])??[];
-  const radarData    = statsCluster.map(c=>({
-    cluster:`Cluster ${c.cluster_id}`,
-    "Nota Geral":r(c._avg.nt_ger),
-    "Formação Geral":r(c._avg.nt_fg),
-    "Componente Específico":r(c._avg.nt_ce),
-  }));
+  const radarData    = statsCluster.map(c=>({ cluster:`Cluster ${c.cluster_id}`, "Nota Geral":r(c._avg.nt_ger), "Formação Geral":r(c._avg.nt_fg), "Componente Específico":r(c._avg.nt_ce) }));
 
-  const importancias = ((ml?.importancias as ImportItemApi[])??[]).map(f=>({
-    nome:NOMES_FEATURE[f.feature]??f.feature,
-    percentual:Math.round(f.valor*1000)/10,
-  }));
+  const importancias   = ((ml?.importancias as ImportItemApi[])??[]).map(f=>({ nome:NOMES_FEATURE[f.feature]??f.feature, percentual:Math.round(f.valor*1000)/10 }));
   const acuracia       = Math.round(((ml?.acuracia as number)??0)*10000)/100;
-  const metricasClasse = ((ml?.metricas_classe as MetricaClasse[])??[])
-    .filter(m=>["baixo","medio","alto"].includes(m.classe??""));
+  const metricasClasse = ((ml?.metricas_classe as MetricaClasse[])??[]).filter(m=>["baixo","medio","alto"].includes(m.classe??""));
 
   const total      = (stats?.total_estudantes as number)??0;
   const mediaGeral = r(((stats?.media_notas as Item)?._avg as Item)?.nt_ger as number);
@@ -492,23 +413,16 @@ export default function Dashboard() {
     {grupo:"Alta intensidade",      trabalho:trabalhaData[3]?.media,estudo:estudoData[3]?.media},
   ];
 
-  const habitosGrupo1 = (habitos?.habitos??[]).filter(h=>
-    ["qe_horas_estudo","qe_trabalha","qe_horas_trabalho"].includes(h.variavel));
-  const habitosGrupo2 = (habitos?.habitos??[]).filter(h=>
-    ["qe_uso_biblioteca","qe_acesso_internet"].includes(h.variavel));
+  const habitosGrupo1 = (habitos?.habitos??[]).filter(h=>["qe_horas_estudo","qe_trabalha","qe_horas_trabalho"].includes(h.variavel));
+  const habitosGrupo2 = (habitos?.habitos??[]).filter(h=>["qe_uso_biblioteca","qe_acesso_internet"].includes(h.variavel));
+  const findHabitoPct = (variavel:string,categoria:string) => (habitos?.habitos.find(h=>h.variavel===variavel)?.dados.find(d=>d.categoria===categoria)?.pct??0).toFixed(1)+"%";
 
-  const findHabitoPct = (variavel:string, categoria:string) =>
-    (habitos?.habitos.find(h=>h.variavel===variavel)
-      ?.dados.find(d=>d.categoria===categoria)?.pct??0
-    ).toFixed(1)+"%";
+  // Gênero — diferença de notas
+  const mediaF     = generoData?.genero.find(g=>g.codigo==="F")?.media_nota??0;
+  const mediaM     = generoData?.genero.find(g=>g.codigo==="M")?.media_nota??0;
+  const difGenero  = Math.abs(mediaM-mediaF).toFixed(1);
 
-  const labelLocalizacao = filtroMunicio
-    ? `Município ${filtroMunicio}`
-    : filtroUF
-    ? ufsRegiao.find(u=>String(u.co_uf)===filtroUF)?.nome??filtroUF
-    : filtroRegiao
-    ? REGIOES.find(rg=>rg.value===filtroRegiao)?.label??""
-    : "";
+  const labelLocalizacao = filtroMunicio?`Município ${filtroMunicio}`:filtroUF?ufsRegiao.find(u=>String(u.co_uf)===filtroUF)?.nome??filtroUF:filtroRegiao?REGIOES.find(rg=>rg.value===filtroRegiao)?.label??""  :"";
 
   // ── Render ────────────────────────────────────────────────
   return (
@@ -532,9 +446,7 @@ export default function Dashboard() {
             </Select>
             <Select value={filtroCurso} onChange={setFiltroCurso}>
               <option value="">Todos os cursos</option>
-              {cursosVisiveis.map(c=>(
-                <option key={c.co_grupo} value={String(c.co_grupo)}>{c.nome}</option>
-              ))}
+              {cursosVisiveis.map(c=><option key={c.co_grupo} value={String(c.co_grupo)}>{c.nome}</option>)}
             </Select>
           </div>
           <div className="flex flex-wrap gap-2 items-center">
@@ -549,23 +461,13 @@ export default function Dashboard() {
               <option value="">{filtroUF?`Todos os municípios${municipios.length?` (${municipios.length})`:""}`:"← Selecione estado"}</option>
               {municipios.map(m=><option key={m.co_municipio} value={String(m.co_municipio)}>{m.nome}</option>)}
             </Select>
-            {temFiltro && (
-              <button onClick={limparFiltros}
-                className="text-xs text-indigo-400 hover:text-indigo-300 px-2 border border-indigo-500/30 rounded-lg py-1.5">
-                ✕ Limpar filtros
-              </button>
-            )}
-            {labelLocalizacao && (
-              <span className="text-xs bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 px-3 py-1.5 rounded-lg">
-                📍 {labelLocalizacao}
-              </span>
-            )}
+            {temFiltro && <button onClick={limparFiltros} className="text-xs text-indigo-400 hover:text-indigo-300 px-2 border border-indigo-500/30 rounded-lg py-1.5">✕ Limpar filtros</button>}
+            {labelLocalizacao && <span className="text-xs bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 px-3 py-1.5 rounded-lg">📍 {labelLocalizacao}</span>}
           </div>
           <div className="flex gap-1 mt-3 overflow-x-auto">
             {ABAS.map((a,i)=>(
               <button key={i} onClick={()=>setAba(i)}
-                className={`px-4 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                  aba===i?"bg-indigo-600 text-white":"text-gray-400 hover:text-white hover:bg-gray-800"}`}>
+                className={`px-4 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${aba===i?"bg-indigo-600 text-white":"text-gray-400 hover:text-white hover:bg-gray-800"}`}>
                 {a}
               </button>
             ))}
@@ -608,8 +510,7 @@ export default function Dashboard() {
               </div>
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
-                  <Pie data={faixaData} cx="50%" cy="50%" outerRadius={75} dataKey="value" nameKey="name"
-                    label={({name,percent})=>`${name} ${((percent??0)*100).toFixed(2)}%`} labelLine={false}>
+                  <Pie data={faixaData} cx="50%" cy="50%" outerRadius={75} dataKey="value" nameKey="name" label={({name,percent})=>`${name} ${((percent??0)*100).toFixed(2)}%`} labelLine={false}>
                     {faixaData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
                   </Pie>
                   <Tooltip {...TT}/>
@@ -623,9 +524,7 @@ export default function Dashboard() {
                   <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} domain={[0,70]}/>
                   <YAxis type="category" dataKey="nome" tick={{fill:"#9ca3af",fontSize:9}} width={200}/>
                   <Tooltip {...TT}/>
-                  <Bar dataKey="media" name="Média nota" radius={[0,4,4,0]}>
-                    {cursoData.map((_,i)=><Cell key={i} fill={CORES_GRADIENTE[i%CORES_GRADIENTE.length]}/>)}
-                  </Bar>
+                  <Bar dataKey="media" name="Média nota" radius={[0,4,4,0]}>{cursoData.map((_,i)=><Cell key={i} fill={CORES_GRADIENTE[i%CORES_GRADIENTE.length]}/>)}</Bar>
                 </BarChart>
               </ResponsiveContainer>
             </Section>
@@ -660,9 +559,7 @@ export default function Dashboard() {
                   <XAxis dataKey="nome" tick={{fill:"#9ca3af",fontSize:10}} angle={-20} textAnchor="end" height={50}/>
                   <YAxis tick={{fill:"#9ca3af",fontSize:12}} domain={[0,90]}/>
                   <Tooltip {...TT}/>
-                  <Bar dataKey="media" name="Média nota" radius={[4,4,0,0]}>
-                    {rendaData.map((_,i)=><Cell key={i} fill={CORES_RENDA[i%CORES_RENDA.length]}/>)}
-                  </Bar>
+                  <Bar dataKey="media" name="Média nota" radius={[4,4,0,0]}>{rendaData.map((_,i)=><Cell key={i} fill={CORES_RENDA[i%CORES_RENDA.length]}/>)}</Bar>
                 </BarChart>
               </ResponsiveContainer>
             </Section>
@@ -673,9 +570,7 @@ export default function Dashboard() {
                   <XAxis dataKey="ano" tick={{fill:"#9ca3af",fontSize:12}}/>
                   <YAxis tick={{fill:"#9ca3af",fontSize:12}}/>
                   <Tooltip {...TT}/>
-                  {FAIXAS_RENDA.map((fr,i)=>(
-                    <Line key={fr} type="monotone" dataKey={fr} stroke={CORES_RENDA[i]} strokeWidth={2} dot={{r:3}} name={fr}/>
-                  ))}
+                  {FAIXAS_RENDA.map((fr,i)=><Line key={fr} type="monotone" dataKey={fr} stroke={CORES_RENDA[i]} strokeWidth={2} dot={{r:3}} name={fr}/>)}
                 </LineChart>
               </ResponsiveContainer>
               <LegendaRenda/>
@@ -687,9 +582,7 @@ export default function Dashboard() {
                   <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} domain={[0,70]}/>
                   <YAxis type="category" dataKey="nome" tick={{fill:"#9ca3af",fontSize:10}} width={160}/>
                   <Tooltip {...TT}/>
-                  <Bar dataKey="media" name="Média nota" radius={[0,4,4,0]}>
-                    {escolaData.map((_,i)=><Cell key={i} fill={CORES_GRADIENTE[i]}/>)}
-                  </Bar>
+                  <Bar dataKey="media" name="Média nota" radius={[0,4,4,0]}>{escolaData.map((_,i)=><Cell key={i} fill={CORES_GRADIENTE[i]}/>)}</Bar>
                 </BarChart>
               </ResponsiveContainer>
             </Section>
@@ -700,9 +593,7 @@ export default function Dashboard() {
                   <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} domain={[35,55]}/>
                   <YAxis type="category" dataKey="nome" tick={{fill:"#9ca3af",fontSize:10}} width={160}/>
                   <Tooltip {...TT}/>
-                  <Bar dataKey="media" name="Média nota" radius={[0,4,4,0]}>
-                    {tipoIesData.map((_,i)=><Cell key={i} fill={CORES_GRADIENTE[i]}/>)}
-                  </Bar>
+                  <Bar dataKey="media" name="Média nota" radius={[0,4,4,0]}>{tipoIesData.map((_,i)=><Cell key={i} fill={CORES_GRADIENTE[i]}/>)}</Bar>
                 </BarChart>
               </ResponsiveContainer>
             </Section>
@@ -711,60 +602,116 @@ export default function Dashboard() {
 
         {/* ── ABA 2: Raça & Gênero ── */}
         {aba===2 && <>
+          {/* Cards gênero */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card title="Estudantes feminino"   value={generoData?.genero.find(g=>g.codigo==="F")?.total.toLocaleString("pt-BR")??"—"} sub={`${generoData?.genero.find(g=>g.codigo==="F")?.pct.toFixed(1)??"—"}% do total`} color="rose"/>
+            <Card title="Média NT_GER feminino"  value={generoData?.genero.find(g=>g.codigo==="F")?.media_nota.toFixed(1)??"—"} sub="pontos — escala 0–100" color="purple"/>
+            <Card title="Estudantes masculino"  value={generoData?.genero.find(g=>g.codigo==="M")?.total.toLocaleString("pt-BR")??"—"} sub={`${generoData?.genero.find(g=>g.codigo==="M")?.pct.toFixed(1)??"—"}% do total`} color="indigo"/>
+            <Card title="Média NT_GER masculino" value={generoData?.genero.find(g=>g.codigo==="M")?.media_nota.toFixed(1)??"—"} sub="pontos — escala 0–100" color="sky"/>
+          </div>
+
+          {/* Gênero — distribuição + nota */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Section title="Raça/Cor autodeclarada × Média no ENADE" sub="Desigualdade racial significativa nos resultados">
+            <Section title="Distribuição por gênero" sub="Composição do corpo discente nos cursos de Computação">
+              <ResponsiveContainer width="100%" height={240}>
+                <PieChart>
+                  <Pie data={generoData?.genero??[]} cx="50%" cy="50%" outerRadius={85} dataKey="total" nameKey="sexo"
+                    label={({name,percent})=>`${name} ${((percent??0)*100).toFixed(1)}%`} labelLine={false}>
+                    {(generoData?.genero??[]).map((_,i)=><Cell key={i} fill={CORES_SEXO[i%CORES_SEXO.length]}/>)}
+                  </Pie>
+                  <Tooltip {...TT}/>
+                </PieChart>
+              </ResponsiveContainer>
+            </Section>
+            <Section title="Média NT_GER por gênero" sub={`Diferença de ${difGenero} pontos entre os gêneros`}>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={generoData?.genero??[]} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                  <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} domain={[0,90]}/>
+                  <YAxis type="category" dataKey="sexo" tick={{fill:"#9ca3af",fontSize:12}} width={80}/>
+                  <Tooltip {...TT}/>
+                  <Bar dataKey="media_nota" name="Média NT_GER" radius={[0,4,4,0]} barSize={40}>
+                    {(generoData?.genero??[]).map((_,i)=><Cell key={i} fill={CORES_SEXO[i%CORES_SEXO.length]}/>)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <p className="text-xs text-amber-400 mt-2">⚠ Diferença mediada pela renda e composição de cursos — Engenharia de Computação tem maioria masculina e médias mais altas.</p>
+            </Section>
+          </div>
+
+          {/* Raça — nota + distribuição */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Section title="Raça/Cor autodeclarada × Média NT_GER" sub="Desigualdade racial nos resultados do ENADE">
               <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={racaData}>
+                <BarChart data={generoData?.raca??[]}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
                   <XAxis dataKey="nome" tick={{fill:"#9ca3af",fontSize:11}}/>
                   <YAxis tick={{fill:"#9ca3af",fontSize:12}} domain={[0,90]}/>
                   <Tooltip {...TT}/>
-                  <Bar dataKey="media" name="Média nota" radius={[4,4,0,0]}>
-                    {racaData.map((_,i)=><Cell key={i} fill={CORES_RACA[i%CORES_RACA.length]}/>)}
+                  <Bar dataKey="media_nota" name="Média NT_GER" radius={[4,4,0,0]}>
+                    {(generoData?.raca??[]).map((_,i)=><Cell key={i} fill={CORES_RACA_G[i%CORES_RACA_G.length]}/>)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </Section>
-            <Section title="Distribuição de estudantes por raça/cor" sub="Composição racial do corpo discente nos cursos de Computação">
+            <Section title="Distribuição de estudantes por raça/cor" sub="Composição racial do corpo discente">
               <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
-                  <Pie data={racaData} cx="50%" cy="50%" outerRadius={95} dataKey="total" nameKey="nome"
-                    label={({name,percent})=>`${name} ${((percent??0)*100).toFixed(2)}%`} labelLine={false}>
-                    {racaData.map((_,i)=><Cell key={i} fill={CORES_RACA[i%CORES_RACA.length]}/>)}
+                  <Pie data={generoData?.raca??[]} cx="50%" cy="50%" outerRadius={95} dataKey="total" nameKey="nome"
+                    label={({name,percent})=>`${name} ${((percent??0)*100).toFixed(1)}%`} labelLine={false}>
+                    {(generoData?.raca??[]).map((_,i)=><Cell key={i} fill={CORES_RACA_G[i%CORES_RACA_G.length]}/>)}
                   </Pie>
                   <Tooltip {...TT}/>
                 </PieChart>
               </ResponsiveContainer>
             </Section>
           </div>
-          <Section title="Índice de desigualdade por grupo racial" sub="Comparativo entre grupos raciais autodeclarados">
+
+          {/* Cruzamento gênero × raça */}
+          <Section title="Média NT_GER por gênero e raça/cor" sub="Comparativo feminino vs masculino dentro de cada grupo racial">
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={generoData?.cruzamento??[]} barCategoryGap="20%">
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                <XAxis dataKey="raca" tick={{fill:"#9ca3af",fontSize:11}}/>
+                <YAxis tick={{fill:"#9ca3af",fontSize:12}} domain={[0,90]}/>
+                <Tooltip {...TT}/><Legend/>
+                <Bar dataKey="feminino"  name="Feminino"  fill={CORES_SEXO[1]} radius={[4,4,0,0]} barSize={20}/>
+                <Bar dataKey="masculino" name="Masculino" fill={CORES_SEXO[0]} radius={[4,4,0,0]} barSize={20}/>
+              </BarChart>
+            </ResponsiveContainer>
+          </Section>
+
+          {/* Tabela detalhada */}
+          <Section title="Índice de desigualdade por grupo racial" sub="Comparativo entre grupos raciais — nota geral, feminino e masculino">
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-gray-700">
-                    {["Raça/Cor","Estudantes","Média nota","% do total","Desempenho relativo"].map(h=>(
+                    {["Raça/Cor","Estudantes","% total","Média geral","Média F","Média M","Desempenho relativo"].map(h=>(
                       <th key={h} className={`py-2 text-gray-400 ${h==="Raça/Cor"||h==="Desempenho relativo"?"text-left":"text-right"}`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {racaData.map((raca,i)=>{
-                    const pct=total>0?(raca.total/total*100).toFixed(2):"0";
-                    const pctNota=Math.min(raca.media/90*100,100);
+                  {(generoData?.raca??[]).map((raca,i)=>{
+                    const cruz=generoData?.cruzamento.find(c=>c.codigo===raca.codigo);
+                    const pctNota=Math.min(raca.media_nota/90*100,100);
                     return (
                       <tr key={i} className="border-b border-gray-800 hover:bg-gray-800/50">
                         <td className="py-2 text-gray-200">
                           <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full inline-block" style={{background:CORES_RACA[i%CORES_RACA.length]}}/>
+                            <span className="w-2 h-2 rounded-full inline-block" style={{background:CORES_RACA_G[i%CORES_RACA_G.length]}}/>
                             {raca.nome}
                           </div>
                         </td>
                         <td className="py-2 text-right text-gray-300">{raca.total.toLocaleString("pt-BR")}</td>
-                        <td className="py-2 text-right font-semibold" style={{color:CORES_RACA[i%CORES_RACA.length]}}>{raca.media.toFixed(2)}</td>
-                        <td className="py-2 text-right text-gray-400">{pct}%</td>
+                        <td className="py-2 text-right text-gray-400">{raca.pct.toFixed(1)}%</td>
+                        <td className="py-2 text-right font-semibold" style={{color:CORES_RACA_G[i%CORES_RACA_G.length]}}>{raca.media_nota.toFixed(2)}</td>
+                        <td className="py-2 text-right" style={{color:"#ec4899"}}>{cruz?.feminino?.toFixed(1)??"—"}</td>
+                        <td className="py-2 text-right" style={{color:"#6366f1"}}>{cruz?.masculino?.toFixed(1)??"—"}</td>
                         <td className="py-2 pl-4">
                           <div className="h-1.5 bg-gray-700 rounded-full w-32">
-                            <div className="h-full rounded-full" style={{width:`${pctNota}%`,background:CORES_RACA[i%CORES_RACA.length]}}/>
+                            <div className="h-full rounded-full" style={{width:`${pctNota}%`,background:CORES_RACA_G[i%CORES_RACA_G.length]}}/>
                           </div>
                         </td>
                       </tr>
@@ -842,11 +789,7 @@ export default function Dashboard() {
         {aba===4 && <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {statsCluster.map((c,i)=>(
-              <Card key={i}
-                title={`Cluster ${c.cluster_id} — ${PERFIS_CLUSTER[i]?.rotulo}`}
-                value={c._count.cluster_id.toLocaleString("pt-BR")}
-                sub={PERFIS_CLUSTER[i]?.detalhe}
-                color={(["indigo","green","amber","rose"] as const)[i]}/>
+              <Card key={i} title={`Cluster ${c.cluster_id} — ${PERFIS_CLUSTER[i]?.rotulo}`} value={c._count.cluster_id.toLocaleString("pt-BR")} sub={PERFIS_CLUSTER[i]?.detalhe} color={(["indigo","green","amber","rose"] as const)[i]}/>
             ))}
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -861,24 +804,19 @@ export default function Dashboard() {
             ))}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-            {/* ScatterPCA melhorado */}
             <ScatterPCA clusterGrp={clusterGrp}/>
-
             <Section title="Perfil médio por cluster — Radar" sub="Comparação das 3 dimensões de nota entre os perfis">
               <ResponsiveContainer width="100%" height={280}>
                 <RadarChart data={radarData}>
                   <PolarGrid stroke="#374151"/>
                   <PolarAngleAxis dataKey="cluster" tick={{fill:"#9ca3af",fontSize:11}}/>
                   {["Nota Geral","Formação Geral","Componente Específico"].map((k,i)=>(
-                    <Radar key={k} name={k} dataKey={k}
-                      stroke={CORES_CLUSTER[i]} fill={CORES_CLUSTER[i]} fillOpacity={0.15}/>
+                    <Radar key={k} name={k} dataKey={k} stroke={CORES_CLUSTER[i]} fill={CORES_CLUSTER[i]} fillOpacity={0.15}/>
                   ))}
                   <Legend/><Tooltip {...TT}/>
                 </RadarChart>
               </ResponsiveContainer>
             </Section>
-
             <Section title="Importância das variáveis — Random Forest" sub="Fatores que mais predizem o desempenho no ENADE">
               <div className="space-y-3">
                 {importancias.map((f,i)=>(
@@ -888,47 +826,35 @@ export default function Dashboard() {
                       <span className="text-indigo-400 font-semibold">{f.percentual}%</span>
                     </div>
                     <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
-                        style={{width:`${Math.min(f.percentual*3,100)}%`}}/>
+                      <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500" style={{width:`${Math.min(f.percentual*3,100)}%`}}/>
                     </div>
                   </div>
                 ))}
               </div>
               <div className="mt-4 pt-3 border-t border-gray-800 text-xs text-gray-500">
-                Acurácia: <span className="text-emerald-400 font-semibold">{acuracia}%</span>
-                {" · "}100 árvores · validação hold-out 20%
+                Acurácia: <span className="text-emerald-400 font-semibold">{acuracia}%</span>{" · "}100 árvores · validação hold-out 20%
               </div>
             </Section>
-
             <Section title="Métricas por classe" sub="Precisão do classificador por faixa de desempenho">
               {metricasClasse.map((m,i)=>(
                 <div key={i} className="mb-4">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium capitalize"
-                      style={{color:["#10b981","#ef4444","#f59e0b"][i]}}>
-                      {m.classe}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      F1-score: <span className="text-white font-semibold">{(m.f1*100).toFixed(2)}%</span>
-                    </span>
+                    <span className="text-sm font-medium capitalize" style={{color:["#10b981","#ef4444","#f59e0b"][i]}}>{m.classe}</span>
+                    <span className="text-xs text-gray-400">F1-score: <span className="text-white font-semibold">{(m.f1*100).toFixed(2)}%</span></span>
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-xs">
-                    {([["Precisão",m.precision],["Recall",m.recall],["Support",m.support]] as [string,number][])
-                      .map(([label,valor],j)=>(
-                        <div key={j} className="bg-gray-800 rounded-lg p-2 text-center">
-                          <p className="text-gray-500">{label}</p>
-                          <p className="text-white font-semibold">
-                            {typeof valor==="number"&&valor<2
-                              ?(valor*100).toFixed(2)+"%"
-                              :Number(valor).toLocaleString("pt-BR")}
-                          </p>
-                        </div>
-                      ))}
+                    {([["Precisão",m.precision],["Recall",m.recall],["Support",m.support]] as [string,number][]).map(([label,valor],j)=>(
+                      <div key={j} className="bg-gray-800 rounded-lg p-2 text-center">
+                        <p className="text-gray-500">{label}</p>
+                        <p className="text-white font-semibold">
+                          {typeof valor==="number"&&valor<2?(valor*100).toFixed(2)+"%":Number(valor).toLocaleString("pt-BR")}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
             </Section>
-
           </div>
         </>}
 
