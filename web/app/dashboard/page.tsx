@@ -520,7 +520,7 @@ export default function Dashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
                   <XAxis dataKey="ano" tick={{fill:"#9ca3af",fontSize:12}}/>
                   <YAxis tick={{fill:"#9ca3af",fontSize:11}} tickFormatter={v=>`${(v/1000).toFixed(0)}k`}/>
-                  <Tooltip {...TT} formatter={(v:number,n:string)=>[v.toLocaleString("pt-BR"),n]}/>
+                  <Tooltip {...TT} formatter={(v)=>[Number(v??0).toLocaleString("pt-BR"),""]}/>
                   <Legend/>
                   <Bar dataKey="publica"  name="Pública"  fill="#10b981" radius={[4,4,0,0]} stackId="s"/>
                   <Bar dataKey="privada"  name="Privada"  fill="#6366f1" radius={[4,4,0,0]} stackId="s"/>
@@ -568,7 +568,7 @@ export default function Dashboard() {
                   label={{value:"Estudantes",angle:-90,position:"insideLeft",style:{fontSize:11,fill:"#6b7280"}}}/>
                 <YAxis yAxisId="r" orientation="right" domain={[30,55]} tick={{fill:"#f59e0b",fontSize:11}}
                   label={{value:"Média",angle:90,position:"insideRight",style:{fontSize:11,fill:"#f59e0b"}}}/>
-                <Tooltip {...TT} formatter={(v:number,n:string)=>n==="Média NT_GER"?[v.toFixed(2),n]:[v.toLocaleString("pt-BR"),n]}/>
+                <Tooltip {...TT} formatter={(v,n)=>[n==="Média NT_GER"?Number(v??0).toFixed(2):Number(v??0).toLocaleString("pt-BR"),String(n)]}/>
                 <Legend/>
                 <Bar yAxisId="l" dataKey="total" name="Estudantes" fill="#6366f1" radius={[3,3,0,0]} order={2}/>
                 <Line yAxisId="r" dataKey="media" name="Média NT_GER" type="monotone"
@@ -585,7 +585,7 @@ export default function Dashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
                   <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} tickFormatter={v=>`${(v/1000).toFixed(0)}k`}/>
                   <YAxis type="category" dataKey="regiao" tick={{fill:"#9ca3af",fontSize:12}} width={110}/>
-                  <Tooltip {...TT} formatter={(v:number,n:string)=>n==="Média NT_GER"?[v.toFixed(2),n]:[v.toLocaleString("pt-BR"),n]}/>
+                  <Tooltip {...TT} formatter={(v,n)=>[n==="Média NT_GER"?Number(v??0).toFixed(2):Number(v??0).toLocaleString("pt-BR"),String(n)]}/>
                   <Legend/>
                   <Bar dataKey="total" name="Estudantes" radius={[0,4,4,0]}>
                     {regiaoData.map((_,i)=><Cell key={i} fill={CORES_REGIAO[i%CORES_REGIAO.length]}/>)}
@@ -599,7 +599,7 @@ export default function Dashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
                   <XAxis dataKey="ano" tick={{fill:"#9ca3af",fontSize:12}}/>
                   <YAxis tick={{fill:"#9ca3af",fontSize:11}} tickFormatter={v=>`${(v/1000).toFixed(0)}k`}/>
-                  <Tooltip {...TT} formatter={(v:number,n:string)=>[v.toLocaleString("pt-BR"),n]}/>
+                  <Tooltip {...TT} formatter={(v)=>[Number(v??0).toLocaleString("pt-BR"),""]}/>
                   <Legend/>
                   <Bar dataKey="total"   name="Total extraído"  fill="#64748b" radius={[4,4,0,0]}/>
                   <Bar dataKey="validos" name="Com nota válida" fill="#6366f1" radius={[4,4,0,0]}/>
