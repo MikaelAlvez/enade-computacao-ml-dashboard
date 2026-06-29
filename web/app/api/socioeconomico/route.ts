@@ -1,57 +1,161 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-
-const MAPA_RACA: Record<number,string> = { 0:"Não declarado",1:"Branca",2:"Preta",3:"Parda",4:"Amarela",5:"Indígena" };
-const MAPA_TRABALHA: Record<number,string> = { 0:"Não trabalha",1:"Até 20h/sem",2:"20 a 40h/sem",3:"Mais de 40h/sem" };
-const MAPA_ESTUDO: Record<number,string>   = { 0:"Nenhuma",1:"1 a 3h/sem",2:"4 a 7h/sem",3:"Mais de 7h/sem" };
-
-function buildWhere(sp: URLSearchParams): Record<string, unknown> {
-  const where: Record<string, unknown> = {};
-  const ano=sp.get("ano"), curso=sp.get("curso"), tipo=sp.get("tipo");
-  const regiao=sp.get("regiao"), uf=sp.get("uf"), municipio=sp.get("municipio");
-  if (ano)       where.nu_ano       = BigInt(ano);
-  if (curso)     where.co_grupo     = BigInt(curso);
-  if (tipo)      where.tipo_ensino  = tipo;
-  if (regiao)    where.co_regiao    = parseInt(regiao);
-  if (uf)        where.co_uf        = BigInt(uf);
-  if (municipio) where.co_municipio = BigInt(municipio);
-  return where;
+function buildWhere(sp: URLSearchParams) {
+  const w: Record<string, unknown> = {};
+  const ano       = sp.get("ano");
+  const curso     = sp.get("curso");
+  const tipo      = sp.get("tipo");
+  const regiao    = sp.get("regiao");
+  const uf        = sp.get("uf");
+  const municipio = sp.get("municipio");
+  if (ano)       w.nu_ano       = BigInt(ano);
+  if (curso)     w.co_grupo     = BigInt(curso);
+  if (tipo)      w.tipo_ensino  = tipo;
+  if (regiao)    w.co_regiao    = parseInt(regiao);
+  if (uf)        w.co_uf        = BigInt(uf);
+  if (municipio) w.co_municipio = BigInt(municipio);
+  return w;
 }
 
-const serialize = (obj: unknown): unknown => {
-  if (typeof obj === "bigint") return Number(obj);
-  if (Array.isArray(obj)) return obj.map(serialize);
-  if (obj !== null && typeof obj === "object")
-    return Object.fromEntries(Object.entries(obj as Record<string,unknown>).map(([k,v])=>[k,serialize(v)]));
-  return obj;
+function toSql(where: Record<string, unknown>) {
+  const conds: string[] = [];
+  const vals: unknown[] = [];
+  let i = 1;
+  const map: Record<string, string> = {
+    nu_ano:"nu_ano", co_grupo:"co_grupo", tipo_ensino:"tipo_ensino",
+    co_regiao:"co_regiao", co_uf:"co_uf", co_municipio:"co_municipio",
+  };
+  for (const [k, v] of Object.entries(where)) {
+    if (map[k]) { conds.push(`${map[k]} = $${i++}`); vals.push(v); }
+  }
+  return { clause: conds.length ? "AND " + conds.join(" AND ") : "", vals };
+}
+
+const FIN_LABEL: Record<string, string> = {
+  "0":"Sem financiamento","1":"ProUni","2":"FIES",
+  "3":"ProUni + FIES","4":"Outro público","5":"Outro privado",
+};
+const EC_LABEL: Record<string, string> = {
+  "A":"Solteiro(a)","B":"Casado(a)","C":"Separado(a)/Divorciado(a)","D":"Viúvo(a)",
 };
 
 export async function GET(req: NextRequest) {
   try {
     const where = buildWhere(req.nextUrl.searchParams);
+    const { clause, vals } = toSql(where);
 
-    const [renda,escola,raca,trabalha,estudo,tipoIes,evolucaoRenda] = await Promise.all([
-      prisma.egressos.groupBy({ by:["qe_renda","renda_nome"], where:{ ...where, renda_nome:{not:null} }, _count:{ qe_renda:true }, _avg:{ nt_ger:true }, orderBy:{ qe_renda:"asc" } }),
-      prisma.egressos.groupBy({ by:["escola_em_nome"], where:{ ...where, escola_em_nome:{not:null} }, _count:{ escola_em_nome:true }, _avg:{ nt_ger:true }, orderBy:{ _avg:{ nt_ger:"desc" } } }),
-      prisma.egressos.groupBy({ by:["qe_raca_cor"], where:{ ...where, qe_raca_cor:{not:null} }, _count:{ qe_raca_cor:true }, _avg:{ nt_ger:true }, orderBy:{ qe_raca_cor:"asc" } }),
-      prisma.egressos.groupBy({ by:["qe_trabalha"], where:{ ...where, qe_trabalha:{not:null} }, _count:{ qe_trabalha:true }, _avg:{ nt_ger:true }, orderBy:{ qe_trabalha:"asc" } }),
-      prisma.egressos.groupBy({ by:["qe_horas_estudo"], where:{ ...where, qe_horas_estudo:{not:null} }, _count:{ qe_horas_estudo:true }, _avg:{ nt_ger:true }, orderBy:{ qe_horas_estudo:"asc" } }),
-      prisma.egressos.groupBy({ by:["tipo_ies"], where:{ ...where, tipo_ies:{not:null} }, _count:{ tipo_ies:true }, _avg:{ nt_ger:true }, orderBy:{ _avg:{ nt_ger:"desc" } } }),
-      prisma.egressos.groupBy({ by:["nu_ano","qe_renda","renda_nome"], where:{ ...where, renda_nome:{not:null} }, _avg:{ nt_ger:true }, orderBy:[{ nu_ano:"asc" },{ qe_renda:"asc" }] }),
-    ]);
+    // helpers 
+    type Row = Record<string, unknown>;
 
-    return NextResponse.json(serialize({
-      renda:   renda.map((r: any)=>({ nome:r.renda_nome, total:r._count.qe_renda, media:Math.round((r._avg.nt_ger??0)*10)/10 })),
-      escola:  escola.map((e: any)=>({ nome:e.escola_em_nome, total:e._count.escola_em_nome, media:Math.round((e._avg.nt_ger??0)*10)/10 })),
-      raca:    raca.map((r: any)=>({ nome:MAPA_RACA[r.qe_raca_cor??0]??"N/A", total:r._count.qe_raca_cor, media:Math.round((r._avg.nt_ger??0)*10)/10 })),
-      trabalha:trabalha.map((t: any)=>({ nome:MAPA_TRABALHA[t.qe_trabalha??0]??"N/A", total:t._count.qe_trabalha, media:Math.round((t._avg.nt_ger??0)*10)/10 })),
-      estudo:  estudo.map((e: any)=>({ nome:MAPA_ESTUDO[e.qe_horas_estudo??0]??"N/A", total:e._count.qe_horas_estudo, media:Math.round((e._avg.nt_ger??0)*10)/10 })),
-      tipo_ies:tipoIes.map((t: any)=>({ nome:t.tipo_ies, total:t._count.tipo_ies, media:Math.round((t._avg.nt_ger??0)*10)/10 })),
-      evolucao_renda: evolucaoRenda.map((e: any)=>({ ano:Number(e.nu_ano), renda:e.renda_nome, media:Math.round((e._avg.nt_ger??0)*10)/10 })),
+    const q = async (sql: string) =>
+      prisma.$queryRawUnsafe<Row[]>(sql, ...vals);
+
+    // 1. Renda
+    const rendaRaw = await q(`
+      SELECT renda_nome AS nome, COUNT(*) AS total,
+             ROUND(AVG(nt_ger)::numeric,2)::float AS media
+      FROM egressos WHERE nt_ger IS NOT NULL ${clause}
+      GROUP BY qe_renda, renda_nome ORDER BY qe_renda`);
+
+    // 2. Escola EM
+    const escolaRaw = await q(`
+      SELECT escola_em_nome AS nome, COUNT(*) AS total,
+             ROUND(AVG(nt_ger)::numeric,2)::float AS media
+      FROM egressos WHERE nt_ger IS NOT NULL AND qe_escola_em IS NOT NULL ${clause}
+      GROUP BY qe_escola_em, escola_em_nome ORDER BY qe_escola_em`);
+
+    // 3. Trabalha
+    const trabalhaRaw = await q(`
+      SELECT qe_trabalha::text AS nome, COUNT(*) AS total,
+             ROUND(AVG(nt_ger)::numeric,2)::float AS media
+      FROM egressos WHERE nt_ger IS NOT NULL AND qe_trabalha IS NOT NULL ${clause}
+      GROUP BY qe_trabalha ORDER BY qe_trabalha`);
+
+    // 4. Horas estudo
+    const estudoRaw = await q(`
+      SELECT qe_horas_estudo::text AS nome, COUNT(*) AS total,
+             ROUND(AVG(nt_ger)::numeric,2)::float AS media
+      FROM egressos WHERE nt_ger IS NOT NULL AND qe_horas_estudo IS NOT NULL ${clause}
+      GROUP BY qe_horas_estudo ORDER BY qe_horas_estudo`);
+
+    // 5. Tipo IES
+    const tipoIesRaw = await q(`
+      SELECT tipo_ies AS nome, COUNT(*) AS total,
+             ROUND(AVG(nt_ger)::numeric,2)::float AS media
+      FROM egressos WHERE nt_ger IS NOT NULL AND tipo_ies IS NOT NULL ${clause}
+      GROUP BY tipo_ies ORDER BY media DESC`);
+
+    //  6. Evolução renda × ano
+    const evolRaw = await q(`
+      SELECT nu_ano::int AS ano, renda_nome AS renda,
+             ROUND(AVG(nt_ger)::numeric,2)::float AS media
+      FROM egressos WHERE nt_ger IS NOT NULL AND renda_nome IS NOT NULL ${clause}
+      GROUP BY nu_ano, qe_renda, renda_nome ORDER BY nu_ano, qe_renda`);
+
+    //  7. Financiamento
+    const finRaw = await q(`
+      SELECT qe_financiamento::text AS codigo, COUNT(*) AS total,
+             ROUND(AVG(nt_ger)::numeric,2)::float AS media
+      FROM egressos WHERE nt_ger IS NOT NULL AND qe_financiamento IS NOT NULL ${clause}
+      GROUP BY qe_financiamento ORDER BY qe_financiamento`);
+
+    const financiamento = finRaw.map(r => ({
+      nome:       FIN_LABEL[String(r.codigo)] ?? String(r.codigo),
+      codigo:     String(r.codigo),
+      total:      Number(r.total),
+      media:      Number(r.media),
     }));
-  } catch(error) {
-    console.error("[/api/socioeconomico]",error);
-    return NextResponse.json({ error:"Erro interno" },{ status:500 });
+
+    // 8. Estado civil
+    const ecRaw = await q(`
+      SELECT qe_estado_civil::text AS codigo, COUNT(*) AS total,
+             ROUND(AVG(nt_ger)::numeric,2)::float AS media
+      FROM egressos WHERE nt_ger IS NOT NULL AND qe_estado_civil IS NOT NULL ${clause}
+      GROUP BY qe_estado_civil ORDER BY qe_estado_civil`);
+
+    const estado_civil = ecRaw.map(r => ({
+      nome:   EC_LABEL[String(r.codigo)] ?? String(r.codigo),
+      codigo: String(r.codigo),
+      total:  Number(r.total),
+      media:  Number(r.media),
+    }));
+
+    // 9. NT_FG vs NT_CE por tipo_ensino
+    const ntRaw = await q(`
+      SELECT tipo_ensino,
+             COUNT(*)                              AS total,
+             ROUND(AVG(nt_ger)::numeric,2)::float  AS media_ger,
+             ROUND(AVG(nt_fg)::numeric,2)::float   AS media_fg,
+             ROUND(AVG(nt_ce)::numeric,2)::float   AS media_ce
+      FROM egressos
+      WHERE nt_ger IS NOT NULL AND tipo_ensino IS NOT NULL ${clause}
+      GROUP BY tipo_ensino ORDER BY tipo_ensino`);
+
+    const nt_por_tipo = ntRaw.map(r => ({
+      tipo:      String(r.tipo_ensino),
+      total:     Number(r.total),
+      media_ger: Number(r.media_ger),
+      media_fg:  Number(r.media_fg),
+      media_ce:  Number(r.media_ce),
+    }));
+
+    const fmt = (rows: Row[]) =>
+      rows.map(r => ({ nome: String(r.nome), total: Number(r.total), media: Number(r.media) }));
+
+    return NextResponse.json({
+      renda:          fmt(rendaRaw),
+      escola:         fmt(escolaRaw),
+      trabalha:       fmt(trabalhaRaw),
+      estudo:         fmt(estudoRaw),
+      tipo_ies:       fmt(tipoIesRaw),
+      evolucao_renda: evolRaw.map(r => ({ ano: Number(r.ano), renda: String(r.renda), media: Number(r.media) })),
+      financiamento,
+      estado_civil,
+      nt_por_tipo,
+    });
+  } catch (e) {
+    console.error("[/api/socioeconomico]", e);
+    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 }

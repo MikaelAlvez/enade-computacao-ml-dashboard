@@ -18,9 +18,9 @@ const CORES_RACA      = ["#94a3b8","#6366f1","#8b5cf6","#a78bfa","#c4b5fd","#ddd
 const CORES_HABITO    = ["#534AB7","#7F77DD","#0F6E56","#1D9E75","#185FA5"];
 const CORES_SEXO      = ["#6366f1","#ec4899"];
 const CORES_RACA_G    = ["#94a3b8","#6366f1","#8b5cf6","#a78bfa","#c4b5fd","#ddd6fe"];
+const CORES_REGIAO    = ["#2a78d6","#1baf7a","#eda100","#4a3aa7","#e34948"];
 const LINE_HABITO     = "#888780";
 
-// PCA
 const CORES_PCA  = ["#6366f1","#10b981","#f59e0b","#ef4444"];
 const NOMES_PCA  = ["Desempenho médio","Baixo desempenho público","Baixo desempenho privado","Alto desempenho"];
 const MEDIAS_PCA = [31.7, 62.6, 50.8, 74.9];
@@ -58,6 +58,7 @@ type CursoOpt     = { co_grupo:number; nome:string };
 type UFOpt        = { co_uf:number; sigla:string; nome:string; co_regiao:number };
 type MunicOpt     = { co_municipio:number; nome:string };
 type Item         = Record<string,unknown>;
+type SocioItem    = { nome:string; total:number; media:number };
 type HabitoItem   = { categoria:string; total:number; pct:number; media_nota:number };
 type HabitoResult = { variavel:string; label:string; dados:HabitoItem[] };
 type HabitosData  = { total:number; habitos:HabitoResult[] };
@@ -68,6 +69,15 @@ type GeneroItem   = { sexo:string; codigo:string; total:number; pct:number; medi
 type RacaItem     = { nome:string; codigo:string; total:number; pct:number; media_nota:number };
 type CruzItem     = { raca:string; codigo:string; feminino:number|null; masculino:number|null; total_f:number; total_m:number };
 type GeneroData   = { total:number; genero:GeneroItem[]; raca:RacaItem[]; cruzamento:CruzItem[] };
+type FinItem      = { nome:string; codigo:string; total:number; media:number };
+type EcItem       = { nome:string; codigo:string; total:number; media:number };
+type NtTipo       = { tipo:string; total:number; media_ger:number; media_fg:number; media_ce:number };
+type ModalItem    = { ano:string; presencial:number; ead_nd:number; total:number };
+type RedeItem     = { ano:string; publica:number; privada:number; total:number; pct_pub:number; pct_priv:number };
+type UFItem       = { uf:string; nome:string; total:number; media:number; regiao:string };
+type RegiaoItem   = { regiao:string; total:number; media:number };
+type CoberturaItem= { ano:string; validos:number; total:number; sem_nota:number; pct_validos:number };
+type VGData       = { modalidade:ModalItem[]; rede:RedeItem[]; por_uf:UFItem[]; por_regiao:RegiaoItem[]; cobertura:CoberturaItem[]; resumo:{total_extraido:number;total_validos:number;total_sem_nota:number;pct_validos:number} };
 
 const TT = { contentStyle:{ backgroundColor:"#1f2937", border:"none", borderRadius:8, fontSize:12 } };
 
@@ -79,9 +89,10 @@ function Card({ title, value, sub, color="indigo", delta }: {
     indigo:"from-indigo-500 to-indigo-700", green:"from-emerald-500 to-emerald-700",
     amber:"from-amber-500 to-amber-700",    rose:"from-rose-500 to-rose-700",
     purple:"from-purple-500 to-purple-700", sky:"from-sky-500 to-sky-700",
+    gray:"from-gray-500 to-gray-700",
   };
   return (
-    <div className={`bg-gradient-to-br ${bg[color]} rounded-2xl p-5 text-white shadow-lg`}>
+    <div className={`bg-gradient-to-br ${bg[color]??bg.indigo} rounded-2xl p-5 text-white shadow-lg`}>
       <p className="text-xs font-medium opacity-75 uppercase tracking-wide">{title}</p>
       <p className="text-3xl font-bold mt-1">{value}</p>
       {sub   && <p className="text-xs opacity-65 mt-1">{sub}</p>}
@@ -127,7 +138,6 @@ function Select({ value, onChange, children, disabled=false }: {
   );
 }
 
-// ── Tooltip Hábito ────────────────────────────────────────────
 const TooltipHabito = ({ active, payload, label }: { active?:boolean; payload?:any[]; label?:string }) => {
   if (!active||!payload?.length) return null;
   return (
@@ -144,33 +154,11 @@ const TooltipHabito = ({ active, payload, label }: { active?:boolean; payload?:a
   );
 };
 
-// ── Tooltip Scatter ───────────────────────────────────────────
-const TooltipScatter = ({ active, payload }: { active?:boolean; payload?:any[] }) => {
-  if (!active||!payload?.length) return null;
-  const d = payload[0]?.payload as PontoCluster;
-  if (!d) return null;
-  return (
-    <div style={{background:"#1f2937",borderRadius:8,padding:"10px 14px",fontSize:12,border:"1px solid #374151"}}>
-      <p style={{color:CORES_PCA[d.cluster_id],fontWeight:500,margin:"0 0 4px"}}>
-        Cluster {d.cluster_id} — {NOMES_PCA[d.cluster_id]}
-      </p>
-      <p style={{color:"#9ca3af",margin:"2px 0"}}>PC1: {d.x.toFixed(3)} · PC2: {d.y.toFixed(3)}</p>
-      <p style={{color:"#9ca3af",margin:"2px 0"}}>
-        Estudantes: <strong style={{color:"#e5e7eb"}}>{d.total.toLocaleString("pt-BR")}</strong>
-      </p>
-      <p style={{color:"#9ca3af",margin:"2px 0"}}>
-        Média NT_GER: <strong style={{color:"#e5e7eb"}}>{MEDIAS_PCA[d.cluster_id].toFixed(1)} pts</strong>
-      </p>
-    </div>
-  );
-};
-
-// ── Card Hábito ───────────────────────────────────────────────
 function HabitoCard({ habito }: { habito:HabitoResult }) {
   return (
     <div className="bg-gray-900 rounded-2xl p-5 border border-gray-800">
       <p className="text-sm font-semibold text-gray-200 mb-0.5">{habito.label}</p>
-      <p className="text-xs text-gray-500 mb-4">Barras = média NT_GER · Linha tracejada = nº de estudantes</p>
+      <p className="text-xs text-gray-500 mb-4">Barras = média NT_GER · Linha = nº de estudantes</p>
       <ResponsiveContainer width="100%" height={230}>
         <ComposedChart data={habito.dados} margin={{top:8,right:16,left:0,bottom:32}}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false}/>
@@ -196,7 +184,6 @@ function HabitoCard({ habito }: { habito:HabitoResult }) {
   );
 }
 
-// ── ScatterPCA ────────────────────────────────────────────────
 function ScatterPCA({ clusterGrp }: { clusterGrp:{ id:number; data:PontoCluster[] }[] }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hidden,  setHidden]  = useState([false,false,false,false]);
@@ -228,14 +215,13 @@ function ScatterPCA({ clusterGrp }: { clusterGrp:{ id:number; data:PontoCluster[
   return (
     <div className="bg-gray-900 rounded-2xl p-5 border border-gray-800">
       <p className="text-sm font-semibold text-gray-200 mb-0.5">Clusters K-Means — Visualização PCA</p>
-      <p className="text-xs text-gray-500 mb-3">Tamanho do círculo ∝ nº de estudantes · clique na legenda para ocultar/mostrar</p>
+      <p className="text-xs text-gray-500 mb-3">Tamanho do círculo ∝ nº de estudantes</p>
       <div className="flex flex-wrap gap-1 mb-3">
         {NOMES_PCA.map((nome,c)=>(
           <button key={c} onClick={()=>setHidden(h=>h.map((v,i)=>i===c?!v:v))}
             className="flex items-center gap-2 px-2 py-1 rounded-lg text-xs transition-colors hover:bg-gray-800"
             style={{opacity:hidden[c]?0.35:1}}>
-            <span className="rounded-full flex-shrink-0"
-              style={{width:10,height:10,display:"inline-block",background:CORES_PCA[c],opacity:0.85}}/>
+            <span className="rounded-full flex-shrink-0" style={{width:10,height:10,display:"inline-block",background:CORES_PCA[c],opacity:0.85}}/>
             <span className="text-gray-300">{`C${c} — ${nome}`}</span>
             <span className="text-gray-600 ml-1">{TOTAL_PCA[c].toLocaleString("pt-BR")}</span>
           </button>
@@ -244,34 +230,25 @@ function ScatterPCA({ clusterGrp }: { clusterGrp:{ id:number; data:PontoCluster[
       <div style={{position:"relative"}}>
         <svg ref={svgRef} width="100%" viewBox={`0 0 ${VW} ${VH}`} style={{display:"block",overflow:"visible"}}>
           {yTicks.map(v=>(
-            <line key={`y${v}`} x1={PAD.l} y1={py(v)} x2={VW-PAD.r} y2={py(v)}
-              stroke="rgba(255,255,255,0.06)" strokeWidth={0.5} strokeDasharray={v===0?"none":"4 4"}/>
+            <line key={`y${v}`} x1={PAD.l} y1={py(v)} x2={VW-PAD.r} y2={py(v)} stroke="rgba(255,255,255,0.06)" strokeWidth={0.5} strokeDasharray={v===0?"none":"4 4"}/>
           ))}
           {xTicks.map(v=>(
-            <line key={`x${v}`} x1={px(v)} y1={PAD.t} x2={px(v)} y2={VH-PAD.b}
-              stroke="rgba(255,255,255,0.06)" strokeWidth={0.5} strokeDasharray={v===0?"none":"4 4"}/>
+            <line key={`x${v}`} x1={px(v)} y1={PAD.t} x2={px(v)} y2={VH-PAD.b} stroke="rgba(255,255,255,0.06)" strokeWidth={0.5} strokeDasharray={v===0?"none":"4 4"}/>
           ))}
           <line x1={PAD.l} y1={PAD.t} x2={PAD.l} y2={VH-PAD.b} stroke="rgba(255,255,255,0.15)" strokeWidth={0.5}/>
           <line x1={PAD.l} y1={VH-PAD.b} x2={VW-PAD.r} y2={VH-PAD.b} stroke="rgba(255,255,255,0.15)" strokeWidth={0.5}/>
-          {xTicks.map(v=>(
-            <text key={`tx${v}`} x={px(v)} y={VH-PAD.b+14} textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.3)">{v}</text>
-          ))}
-          {yTicks.map(v=>(
-            <text key={`ty${v}`} x={PAD.l-6} y={py(v)} textAnchor="end" dominantBaseline="central" fontSize={10} fill="rgba(255,255,255,0.3)">{v}</text>
-          ))}
+          {xTicks.map(v=><text key={`tx${v}`} x={px(v)} y={VH-PAD.b+14} textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.3)">{v}</text>)}
+          {yTicks.map(v=><text key={`ty${v}`} x={PAD.l-6} y={py(v)} textAnchor="end" dominantBaseline="central" fontSize={10} fill="rgba(255,255,255,0.3)">{v}</text>)}
           <text x={PAD.l+PW/2} y={VH-4} textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.35)">PC1 — perfil socioeconômico (63,4% da variância)</text>
           <text x={12} y={PAD.t+PH/2} textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.35)" transform={`rotate(-90,12,${PAD.t+PH/2})`}>PC2 — hábitos (12,8%)</text>
-          <circle cx={px(0)} cy={py(0)} r={3} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth={0.5} strokeDasharray="3 3"/>
-          {clusterGrp.map(g=>
-            hidden[g.id]?null:g.data.map((p,i)=>(
-              <circle key={i} cx={px(p.x)} cy={py(p.y)} r={pr(p.total)}
-                fill={CORES_PCA[g.id]} fillOpacity={opacity/100}
-                stroke={CORES_PCA[g.id]} strokeWidth={1} strokeOpacity={0.9}
-                style={{cursor:"pointer",transition:"fill-opacity .15s"}}
-                onMouseEnter={e=>handleEnter(e,p,g.id)}
-                onMouseLeave={()=>setTip(t=>({...t,visible:false}))}/>
-            ))
-          )}
+          {clusterGrp.map(g=>hidden[g.id]?null:g.data.map((p,i)=>(
+            <circle key={i} cx={px(p.x)} cy={py(p.y)} r={pr(p.total)}
+              fill={CORES_PCA[g.id]} fillOpacity={opacity/100}
+              stroke={CORES_PCA[g.id]} strokeWidth={1} strokeOpacity={0.9}
+              style={{cursor:"pointer"}}
+              onMouseEnter={e=>handleEnter(e,p,g.id)}
+              onMouseLeave={()=>setTip(t=>({...t,visible:false}))}/>
+          )))}
         </svg>
         {tip.visible && tip.p && (
           <div style={{position:"absolute",left:tip.x,top:tip.y,background:"#111827",border:"0.5px solid rgba(255,255,255,0.12)",borderRadius:8,padding:"10px 14px",fontSize:12,pointerEvents:"none",zIndex:10,minWidth:190}}>
@@ -284,8 +261,7 @@ function ScatterPCA({ clusterGrp }: { clusterGrp:{ id:number; data:PontoCluster[
       </div>
       <div className="flex items-center gap-3 mt-3" style={{fontSize:12,color:"#6b7280"}}>
         <span>Opacidade</span>
-        <input type="range" min={10} max={100} step={5} value={opacity}
-          onChange={e=>setOpacity(Number(e.target.value))} style={{width:100}}/>
+        <input type="range" min={10} max={100} step={5} value={opacity} onChange={e=>setOpacity(Number(e.target.value))} style={{width:100}}/>
         <span style={{minWidth:32}}>{opacity}%</span>
       </div>
     </div>
@@ -306,18 +282,21 @@ export default function Dashboard() {
   const [todasUFs,   setTodasUFs]   = useState<UFOpt[]>([]);
   const [ufsRegiao,  setUfsRegiao]  = useState<UFOpt[]>([]);
   const [municipios, setMunicipios] = useState<MunicOpt[]>([]);
-  const [stats,       setStats]       = useState<Record<string,unknown>|null>(null);
-  const [socio,       setSocio]       = useState<Record<string,unknown>|null>(null);
-  const [clusters,    setClusters]    = useState<Record<string,unknown>|null>(null);
-  const [ml,          setMl]          = useState<Record<string,unknown>|null>(null);
-  const [habitos,     setHabitos]     = useState<HabitosData|null>(null);
-  const [generoData,  setGeneroData]  = useState<GeneroData|null>(null);
-  const [loading,     setLoading]     = useState(true);
+  const [stats,      setStats]      = useState<Record<string,unknown>|null>(null);
+  const [socio,      setSocio]      = useState<Record<string,unknown>|null>(null);
+  const [clusters,   setClusters]   = useState<Record<string,unknown>|null>(null);
+  const [ml,         setMl]         = useState<Record<string,unknown>|null>(null);
+  const [habitos,    setHabitos]    = useState<HabitosData|null>(null);
+  const [generoData, setGeneroData] = useState<GeneroData|null>(null);
+  const [vgData,     setVgData]     = useState<VGData|null>(null);
+  const [loading,    setLoading]    = useState(true);
 
   useEffect(()=>{
     axios.get("/api/filtros").then(res=>{
       setCursos(res.data.cursos??[]); setTipos(res.data.tipos??[]); setTodasUFs(res.data.ufs??[]);
     }).catch(console.error);
+    // Visão geral não depende de filtros — busca uma vez
+    axios.get("/api/visao-geral").then(res=>setVgData(res.data)).catch(console.error);
   },[]);
 
   useEffect(()=>{
@@ -377,14 +356,15 @@ export default function Dashboard() {
   const faixaData  = ((stats?.distribuicao_faixa  as Item[])??[]).map((f:Item)=>({ name:f.faixa_nota as string??"N/A", value:(f._count as Item).faixa_nota as number, fill:CORES_FAIXA[(f.faixa_nota as keyof typeof CORES_FAIXA)]??"#94a3b8" }));
   const anoData    = ((stats?.distribuicao_ano    as Item[])??[]).map((a:Item)=>({ ano:String(a.nu_ano), estudantes:(a._count as Item).nu_ano as number, media:r((a._avg as Item).nt_ger as number) }));
   const cursoData  = ((stats?.distribuicao_curso  as Item[])??[]).map((c:Item)=>({ nome:(c.curso_nome as string)??"N/A", total:(c._count as Item).co_grupo as number, media:r((c._avg as Item).nt_ger as number) }));
-  const regiaoData = ((stats?.distribuicao_regiao as Item[])??[]).map((ri:Item)=>({ nome:ri.regiao_nome as string??"N/A", total:(ri._count as Item).co_regiao as number, media:r((ri._avg as Item).nt_ger as number) }));
 
-  type SocioItem = { nome:string; total:number; media:number };
-  const rendaData    = (socio?.renda    as SocioItem[])??[];
-  const escolaData   = (socio?.escola   as SocioItem[])??[];
-  const trabalhaData = (socio?.trabalha as SocioItem[])??[];
-  const estudoData   = (socio?.estudo   as SocioItem[])??[];
-  const tipoIesData  = (socio?.tipo_ies as SocioItem[])??[];
+  const rendaData          = (socio?.renda          as SocioItem[])??[];
+  const escolaData         = (socio?.escola         as SocioItem[])??[];
+  const trabalhaData       = (socio?.trabalha       as SocioItem[])??[];
+  const estudoData         = (socio?.estudo         as SocioItem[])??[];
+  const tipoIesData        = (socio?.tipo_ies       as SocioItem[])??[];
+  const financiamentoData  = (socio?.financiamento  as FinItem[])??[];
+  const estadoCivilData    = (socio?.estado_civil   as EcItem[])??[];
+  const ntPorTipo          = (socio?.nt_por_tipo    as NtTipo[])??[];
 
   type EvolItem = { ano:number; renda:string; media:number };
   const evolRenda = (socio?.evolucao_renda as EvolItem[])??[];
@@ -412,17 +392,23 @@ export default function Dashboard() {
     {grupo:"Média intensidade",     trabalho:trabalhaData[2]?.media,estudo:estudoData[2]?.media},
     {grupo:"Alta intensidade",      trabalho:trabalhaData[3]?.media,estudo:estudoData[3]?.media},
   ];
-
   const habitosGrupo1 = (habitos?.habitos??[]).filter(h=>["qe_horas_estudo","qe_trabalha","qe_horas_trabalho"].includes(h.variavel));
   const habitosGrupo2 = (habitos?.habitos??[]).filter(h=>["qe_uso_biblioteca","qe_acesso_internet"].includes(h.variavel));
   const findHabitoPct = (variavel:string,categoria:string) => (habitos?.habitos.find(h=>h.variavel===variavel)?.dados.find(d=>d.categoria===categoria)?.pct??0).toFixed(1)+"%";
 
-  // Gênero — diferença de notas
-  const mediaF     = generoData?.genero.find(g=>g.codigo==="F")?.media_nota??0;
-  const mediaM     = generoData?.genero.find(g=>g.codigo==="M")?.media_nota??0;
-  const difGenero  = Math.abs(mediaM-mediaF).toFixed(1);
+  const mediaF    = generoData?.genero.find(g=>g.codigo==="F")?.media_nota??0;
+  const mediaM    = generoData?.genero.find(g=>g.codigo==="M")?.media_nota??0;
+  const difGenero = Math.abs(mediaM-mediaF).toFixed(1);
 
-  const labelLocalizacao = filtroMunicio?`Município ${filtroMunicio}`:filtroUF?ufsRegiao.find(u=>String(u.co_uf)===filtroUF)?.nome??filtroUF:filtroRegiao?REGIOES.find(rg=>rg.value===filtroRegiao)?.label??""  :"";
+  const labelLocalizacao = filtroMunicio?`Município ${filtroMunicio}`:filtroUF?ufsRegiao.find(u=>String(u.co_uf)===filtroUF)?.nome??filtroUF:filtroRegiao?REGIOES.find(rg=>rg.value===filtroRegiao)?.label??"":"";
+
+  // dados VG
+  const modalData   = vgData?.modalidade??[];
+  const redeData    = vgData?.rede??[];
+  const ufData      = vgData?.por_uf??[];
+  const regiaoData  = vgData?.por_regiao??[];
+  const cobertData  = vgData?.cobertura??[];
+  const resumoVG    = vgData?.resumo;
 
   // ── Render ────────────────────────────────────────────────
   return (
@@ -482,9 +468,11 @@ export default function Dashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card title="Estudantes analisados" value={total.toLocaleString("pt-BR")} sub="com nota válida no ENADE" color="indigo"/>
             <Card title="Média geral ENADE" value={mediaGeral.toFixed(1)} sub="escala 0–100, todos os anos" color="green"/>
-            <Card title="Diferença por renda" value={`${multRenda}×`} sub="nota máx vs mínima por faixa" color="amber" delta="⚠ Desigualdade crítica"/>
+            <Card title="Total extraído" value={(resumoVG?.total_extraido??164814).toLocaleString("pt-BR")} sub={`${resumoVG?.pct_validos??77.2}% com nota válida`} color="amber"/>
             <Card title="Acurácia Random Forest" value={`${acuracia}%`} sub="classificação de desempenho" color="rose"/>
           </div>
+
+          {/* Nota por ano + Faixas */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <Section title="Estudantes e média por ano">
               <ResponsiveContainer width="100%" height={220}>
@@ -499,24 +487,50 @@ export default function Dashboard() {
                 </LineChart>
               </ResponsiveContainer>
             </Section>
-            <Section title="Distribuição por faixa de desempenho" sub="Baseado na nota geral (NT_GER) — escala 0 a 100">
-              <div className="flex justify-center gap-3 mb-3 flex-wrap">
-                {[{label:"Baixo",range:"0 – 33,3 pts",color:"red"},{label:"Médio",range:"33,3 – 48,5 pts",color:"amber"},{label:"Alto",range:"acima de 48,5 pts",color:"emerald"}].map(({label,range,color})=>(
-                  <div key={label} className={`flex items-center gap-1.5 bg-${color}-500/10 border border-${color}-500/20 rounded-lg px-3 py-1.5`}>
-                    <span className={`w-2.5 h-2.5 rounded-full bg-${color}-500 inline-block`}/>
-                    <span className="text-xs text-gray-200">{label} <span className={`text-${color}-400 font-semibold`}>{range}</span></span>
-                  </div>
-                ))}
-              </div>
+            <Section title="Distribuição por faixa de desempenho" sub="Baseado na nota geral (NT_GER) normalizada por tercis">
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
-                  <Pie data={faixaData} cx="50%" cy="50%" outerRadius={75} dataKey="value" nameKey="name" label={({name,percent})=>`${name} ${((percent??0)*100).toFixed(2)}%`} labelLine={false}>
+                  <Pie data={faixaData} cx="50%" cy="50%" outerRadius={75} dataKey="value" nameKey="name" label={({name,percent})=>`${name} ${((percent??0)*100).toFixed(1)}%`} labelLine={false}>
                     {faixaData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
                   </Pie>
                   <Tooltip {...TT}/>
                 </PieChart>
               </ResponsiveContainer>
             </Section>
+          </div>
+
+          {/* Modalidade + Rede */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Section title="Modalidade de ensino por ano" sub="Presencial confirmado vs EAD/não informado nos microdados LGPD">
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={modalData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                  <XAxis dataKey="ano" tick={{fill:"#9ca3af",fontSize:12}}/>
+                  <YAxis tick={{fill:"#9ca3af",fontSize:11}} tickFormatter={v=>`${(v/1000).toFixed(0)}k`}/>
+                  <Tooltip {...TT}/><Legend/>
+                  <Bar dataKey="presencial"  name="Presencial"        fill="#6366f1" radius={[4,4,0,0]} stackId="s"/>
+                  <Bar dataKey="ead_nd"      name="EAD/Não informado" fill="#64748b" radius={[4,4,0,0]} stackId="s"/>
+                </BarChart>
+              </ResponsiveContainer>
+              <p className="text-xs text-amber-400 mt-2">⚠ EAD não foi capturado nestas edições — "Não informado" inclui registros sem modalidade declarada.</p>
+            </Section>
+            <Section title="Rede pública vs privada por ano" sub="Distribuição do corpo discente por tipo de instituição">
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={redeData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                  <XAxis dataKey="ano" tick={{fill:"#9ca3af",fontSize:12}}/>
+                  <YAxis tick={{fill:"#9ca3af",fontSize:11}} tickFormatter={v=>`${(v/1000).toFixed(0)}k`}/>
+                  <Tooltip {...TT} formatter={(v:number,n:string)=>[v.toLocaleString("pt-BR"),n]}/>
+                  <Legend/>
+                  <Bar dataKey="publica"  name="Pública"  fill="#10b981" radius={[4,4,0,0]} stackId="s"/>
+                  <Bar dataKey="privada"  name="Privada"  fill="#6366f1" radius={[4,4,0,0]} stackId="s"/>
+                </BarChart>
+              </ResponsiveContainer>
+            </Section>
+          </div>
+
+          {/* Por curso + NT_FG vs NT_CE */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <Section title="Média de nota por curso">
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={cursoData} layout="vertical">
@@ -528,18 +542,78 @@ export default function Dashboard() {
                 </BarChart>
               </ResponsiveContainer>
             </Section>
-            <Section title="Estudantes e média por região">
+            <Section title="NT_FG vs NT_CE por tipo de ensino" sub="Formação Geral vs Componente Específico — diagnóstico pedagógico">
               <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={regiaoData}>
+                <BarChart data={ntPorTipo}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
-                  <XAxis dataKey="nome" tick={{fill:"#9ca3af",fontSize:11}}/>
-                  <YAxis yAxisId="l" tick={{fill:"#9ca3af",fontSize:12}}/>
-                  <YAxis yAxisId="r" orientation="right" tick={{fill:"#9ca3af",fontSize:12}}/>
+                  <XAxis dataKey="tipo" tick={{fill:"#9ca3af",fontSize:11}}/>
+                  <YAxis tick={{fill:"#9ca3af",fontSize:12}} domain={[35,55]}/>
                   <Tooltip {...TT}/><Legend/>
-                  <Bar yAxisId="l" dataKey="total" fill="#8b5cf6" name="Estudantes" radius={[4,4,0,0]}/>
-                  <Line yAxisId="r" type="monotone" dataKey="media" stroke="#f59e0b" strokeWidth={2} name="Média"/>
+                  <Bar dataKey="media_fg"  name="NT_FG (Form. Geral)"      fill="#6366f1" radius={[4,4,0,0]} barSize={28}/>
+                  <Bar dataKey="media_ce"  name="NT_CE (Comp. Específico)" fill="#10b981" radius={[4,4,0,0]} barSize={28}/>
+                  <Bar dataKey="media_ger" name="NT_GER (Nota Geral)"      fill="#f59e0b" radius={[4,4,0,0]} barSize={28}/>
                 </BarChart>
               </ResponsiveContainer>
+              <p className="text-xs text-gray-500 mt-2">Tecnologia tem maior lacuna NT_FG/NT_CE — déficit no componente específico.</p>
+            </Section>
+          </div>
+
+          {/* Por estado */}
+          <Section title="Estudantes e média NT_GER por estado" sub="Todos os estados brasileiros com dados de Computação no ENADE">
+            <ResponsiveContainer width="100%" height={300}>
+              <ComposedChart data={ufData} margin={{top:8,right:40,left:0,bottom:20}}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false}/>
+                <XAxis dataKey="uf" tick={{fill:"#9ca3af",fontSize:10}} angle={-40} textAnchor="end" interval={0}/>
+                <YAxis yAxisId="l" tick={{fill:"#9ca3af",fontSize:11}} tickFormatter={v=>`${(v/1000).toFixed(0)}k`}
+                  label={{value:"Estudantes",angle:-90,position:"insideLeft",style:{fontSize:11,fill:"#6b7280"}}}/>
+                <YAxis yAxisId="r" orientation="right" domain={[30,55]} tick={{fill:"#f59e0b",fontSize:11}}
+                  label={{value:"Média",angle:90,position:"insideRight",style:{fontSize:11,fill:"#f59e0b"}}}/>
+                <Tooltip {...TT} formatter={(v:number,n:string)=>n==="Média NT_GER"?[v.toFixed(2),n]:[v.toLocaleString("pt-BR"),n]}/>
+                <Legend/>
+                <Bar yAxisId="l" dataKey="total" name="Estudantes" fill="#6366f1" radius={[3,3,0,0]} order={2}/>
+                <Line yAxisId="r" dataKey="media" name="Média NT_GER" type="monotone"
+                  stroke="#f59e0b" strokeWidth={2} dot={{r:3,fill:"#f59e0b"}} activeDot={{r:5}} order={1}/>
+              </ComposedChart>
+            </ResponsiveContainer>
+          </Section>
+
+          {/* Concentração por região + Cobertura */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Section title="Concentração por região" sub="Total acumulado 2014–2021 com média NT_GER">
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={regiaoData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                  <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} tickFormatter={v=>`${(v/1000).toFixed(0)}k`}/>
+                  <YAxis type="category" dataKey="regiao" tick={{fill:"#9ca3af",fontSize:12}} width={110}/>
+                  <Tooltip {...TT} formatter={(v:number,n:string)=>n==="Média NT_GER"?[v.toFixed(2),n]:[v.toLocaleString("pt-BR"),n]}/>
+                  <Legend/>
+                  <Bar dataKey="total" name="Estudantes" radius={[0,4,4,0]}>
+                    {regiaoData.map((_,i)=><Cell key={i} fill={CORES_REGIAO[i%CORES_REGIAO.length]}/>)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </Section>
+            <Section title="Nota válida vs total extraído por ano" sub="Cobertura do banco — registros sem nota foram excluídos da análise">
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart data={cobertData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                  <XAxis dataKey="ano" tick={{fill:"#9ca3af",fontSize:12}}/>
+                  <YAxis tick={{fill:"#9ca3af",fontSize:11}} tickFormatter={v=>`${(v/1000).toFixed(0)}k`}/>
+                  <Tooltip {...TT} formatter={(v:number,n:string)=>[v.toLocaleString("pt-BR"),n]}/>
+                  <Legend/>
+                  <Bar dataKey="total"   name="Total extraído"  fill="#64748b" radius={[4,4,0,0]}/>
+                  <Bar dataKey="validos" name="Com nota válida" fill="#6366f1" radius={[4,4,0,0]}/>
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="flex justify-around mt-3">
+                {cobertData.map(d=>(
+                  <div key={d.ano} className="text-center">
+                    <p className="text-xs text-gray-500">{d.ano}</p>
+                    <p className="text-sm font-semibold text-indigo-400">{d.pct_validos}%</p>
+                    <p className="text-xs text-gray-500">válidos</p>
+                  </div>
+                ))}
+              </div>
             </Section>
           </div>
         </>}
@@ -549,7 +623,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Card title="Menor média (menor renda)" value={rendaData[0]?.media.toFixed(1)??"-"} sub={rendaData[0]?.nome??"—"} color="rose"/>
             <Card title="Maior média (maior renda)" value={rendaData[rendaData.length-1]?.media.toFixed(1)??"-"} sub={rendaData[rendaData.length-1]?.nome??"—"} color="green"/>
-            <Card title="Fator de desigualdade" value={`${multRenda}×`} sub="nota máx ÷ mínima por renda" color="amber" delta="Correlação fortíssima"/>
+            <Card title="Fator de desigualdade" value={`${multRenda}×`} sub="nota máx ÷ mínima por renda" color="amber" delta="Correlação r=0,951"/>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <Section title="Renda familiar × Média no ENADE" sub="Correlação quase linear — principal preditor de desempenho">
@@ -563,7 +637,7 @@ export default function Dashboard() {
                 </BarChart>
               </ResponsiveContainer>
             </Section>
-            <Section title="Evolução da nota por faixa de renda (2014–2021)" sub="Faixa '10 a 30 SM' ausente em 2021 nos microdados INEP">
+            <Section title="Evolução da nota por faixa de renda (2014–2021)">
               <ResponsiveContainer width="100%" height={210}>
                 <LineChart data={evolPivot}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
@@ -575,7 +649,7 @@ export default function Dashboard() {
               </ResponsiveContainer>
               <LegendaRenda/>
             </Section>
-            <Section title="Tipo de escola no Ensino Médio × Nota" sub="Quem estudou em escola pública integral tem menor nota média">
+            <Section title="Tipo de escola no Ensino Médio × Nota">
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={escolaData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
@@ -586,7 +660,7 @@ export default function Dashboard() {
                 </BarChart>
               </ResponsiveContainer>
             </Section>
-            <Section title="Tipo de IES × Nota média" sub="Diferença entre categorias administrativas das instituições">
+            <Section title="Tipo de IES × Nota média">
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={tipoIesData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
@@ -598,19 +672,45 @@ export default function Dashboard() {
               </ResponsiveContainer>
             </Section>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Section title="Financiamento estudantil × Nota" sub="Quem não tem financiamento tem a menor média">
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={financiamentoData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                  <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} domain={[0,85]}/>
+                  <YAxis type="category" dataKey="nome" tick={{fill:"#9ca3af",fontSize:10}} width={130}/>
+                  <Tooltip {...TT}/>
+                  <Bar dataKey="media" name="Média NT_GER" radius={[0,4,4,0]}>
+                    {financiamentoData.map((_,i)=><Cell key={i} fill={CORES_RENDA[i%CORES_RENDA.length]}/>)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </Section>
+            <Section title="Estado civil × Nota média" sub="Mediado pela idade — estudantes mais velhos têm maior maturidade acadêmica">
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={estadoCivilData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                  <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} domain={[0,90]}/>
+                  <YAxis type="category" dataKey="nome" tick={{fill:"#9ca3af",fontSize:10}} width={170}/>
+                  <Tooltip {...TT}/>
+                  <Bar dataKey="media" name="Média NT_GER" radius={[0,4,4,0]}>
+                    {estadoCivilData.map((_,i)=><Cell key={i} fill={CORES_GRADIENTE[i%CORES_GRADIENTE.length]}/>)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <p className="text-xs text-amber-400 mt-2">⚠ Viúvos (n=196) e separados (n=4.195) têm amostras pequenas — interpretar com cautela.</p>
+            </Section>
+          </div>
         </>}
 
         {/* ── ABA 2: Raça & Gênero ── */}
         {aba===2 && <>
-          {/* Cards gênero */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card title="Estudantes feminino"   value={generoData?.genero.find(g=>g.codigo==="F")?.total.toLocaleString("pt-BR")??"—"} sub={`${generoData?.genero.find(g=>g.codigo==="F")?.pct.toFixed(1)??"—"}% do total`} color="rose"/>
+            <Card title="Estudantes feminino"    value={generoData?.genero.find(g=>g.codigo==="F")?.total.toLocaleString("pt-BR")??"—"} sub={`${generoData?.genero.find(g=>g.codigo==="F")?.pct.toFixed(1)??"—"}% do total`} color="rose"/>
             <Card title="Média NT_GER feminino"  value={generoData?.genero.find(g=>g.codigo==="F")?.media_nota.toFixed(1)??"—"} sub="pontos — escala 0–100" color="purple"/>
-            <Card title="Estudantes masculino"  value={generoData?.genero.find(g=>g.codigo==="M")?.total.toLocaleString("pt-BR")??"—"} sub={`${generoData?.genero.find(g=>g.codigo==="M")?.pct.toFixed(1)??"—"}% do total`} color="indigo"/>
+            <Card title="Estudantes masculino"   value={generoData?.genero.find(g=>g.codigo==="M")?.total.toLocaleString("pt-BR")??"—"} sub={`${generoData?.genero.find(g=>g.codigo==="M")?.pct.toFixed(1)??"—"}% do total`} color="indigo"/>
             <Card title="Média NT_GER masculino" value={generoData?.genero.find(g=>g.codigo==="M")?.media_nota.toFixed(1)??"—"} sub="pontos — escala 0–100" color="sky"/>
           </div>
-
-          {/* Gênero — distribuição + nota */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <Section title="Distribuição por gênero" sub="Composição do corpo discente nos cursos de Computação">
               <ResponsiveContainer width="100%" height={240}>
@@ -635,11 +735,9 @@ export default function Dashboard() {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-              <p className="text-xs text-amber-400 mt-2">⚠ Diferença mediada pela renda e composição de cursos — Engenharia de Computação tem maioria masculina e médias mais altas.</p>
+              <p className="text-xs text-amber-400 mt-2">⚠ Diferença mediada pela renda e composição de cursos.</p>
             </Section>
           </div>
-
-          {/* Raça — nota + distribuição */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <Section title="Raça/Cor autodeclarada × Média NT_GER" sub="Desigualdade racial nos resultados do ENADE">
               <ResponsiveContainer width="100%" height={260}>
@@ -666,8 +764,6 @@ export default function Dashboard() {
               </ResponsiveContainer>
             </Section>
           </div>
-
-          {/* Cruzamento gênero × raça */}
           <Section title="Média NT_GER por gênero e raça/cor" sub="Comparativo feminino vs masculino dentro de cada grupo racial">
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={generoData?.cruzamento??[]} barCategoryGap="20%">
@@ -680,15 +776,13 @@ export default function Dashboard() {
               </BarChart>
             </ResponsiveContainer>
           </Section>
-
-          {/* Tabela detalhada */}
           <Section title="Índice de desigualdade por grupo racial" sub="Comparativo entre grupos raciais — nota geral, feminino e masculino">
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-gray-700">
-                    {["Raça/Cor","Estudantes","% total","Média geral","Média F","Média M","Desempenho relativo"].map(h=>(
-                      <th key={h} className={`py-2 text-gray-400 ${h==="Raça/Cor"||h==="Desempenho relativo"?"text-left":"text-right"}`}>{h}</th>
+                    {["Raça/Cor","Estudantes","% total","Média geral","Média F","Média M","Desempenho"].map(h=>(
+                      <th key={h} className={`py-2 text-gray-400 ${h==="Raça/Cor"||h==="Desempenho"?"text-left":"text-right"}`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -698,22 +792,13 @@ export default function Dashboard() {
                     const pctNota=Math.min(raca.media_nota/90*100,100);
                     return (
                       <tr key={i} className="border-b border-gray-800 hover:bg-gray-800/50">
-                        <td className="py-2 text-gray-200">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full inline-block" style={{background:CORES_RACA_G[i%CORES_RACA_G.length]}}/>
-                            {raca.nome}
-                          </div>
-                        </td>
+                        <td className="py-2 text-gray-200"><div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full" style={{background:CORES_RACA_G[i%CORES_RACA_G.length]}}/>{raca.nome}</div></td>
                         <td className="py-2 text-right text-gray-300">{raca.total.toLocaleString("pt-BR")}</td>
                         <td className="py-2 text-right text-gray-400">{raca.pct.toFixed(1)}%</td>
                         <td className="py-2 text-right font-semibold" style={{color:CORES_RACA_G[i%CORES_RACA_G.length]}}>{raca.media_nota.toFixed(2)}</td>
                         <td className="py-2 text-right" style={{color:"#ec4899"}}>{cruz?.feminino?.toFixed(1)??"—"}</td>
                         <td className="py-2 text-right" style={{color:"#6366f1"}}>{cruz?.masculino?.toFixed(1)??"—"}</td>
-                        <td className="py-2 pl-4">
-                          <div className="h-1.5 bg-gray-700 rounded-full w-32">
-                            <div className="h-full rounded-full" style={{width:`${pctNota}%`,background:CORES_RACA_G[i%CORES_RACA_G.length]}}/>
-                          </div>
-                        </td>
+                        <td className="py-2 pl-4"><div className="h-1.5 bg-gray-700 rounded-full w-32"><div className="h-full rounded-full" style={{width:`${pctNota}%`,background:CORES_RACA_G[i%CORES_RACA_G.length]}}/></div></td>
                       </tr>
                     );
                   })}
@@ -738,7 +823,7 @@ export default function Dashboard() {
             {habitosGrupo2.map(h=><HabitoCard key={h.variavel} habito={h}/>)}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Section title="Comparativo: trabalho vs estudo por intensidade" sub="Nota média por nível de dedicação">
+            <Section title="Comparativo: trabalho vs estudo por intensidade">
               <ResponsiveContainer width="100%" height={230}>
                 <BarChart data={comparativoHabitos}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
@@ -750,19 +835,14 @@ export default function Dashboard() {
                 </BarChart>
               </ResponsiveContainer>
             </Section>
-            <Section title="Distribuição por hábito de estudo e trabalho" sub="% de estudantes por intensidade">
+            <Section title="Distribuição por hábito de estudo e trabalho">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs text-gray-400 mb-2 font-medium">Horas de trabalho</p>
                   {trabalhaData.map((t,i)=>(
                     <div key={i} className="mb-2">
-                      <div className="flex justify-between text-xs mb-0.5">
-                        <span className="text-gray-300">{t.nome}</span>
-                        <span className="text-gray-400">{t.total.toLocaleString("pt-BR")} ({(t.total/total*100).toFixed(2)}%)</span>
-                      </div>
-                      <div className="h-1.5 bg-gray-800 rounded-full">
-                        <div className="h-full rounded-full" style={{width:`${t.total/total*100}%`,background:CORES_GRADIENTE[i]}}/>
-                      </div>
+                      <div className="flex justify-between text-xs mb-0.5"><span className="text-gray-300">{t.nome}</span><span className="text-gray-400">{t.total.toLocaleString("pt-BR")}</span></div>
+                      <div className="h-1.5 bg-gray-800 rounded-full"><div className="h-full rounded-full" style={{width:`${t.total/total*100}%`,background:CORES_GRADIENTE[i]}}/></div>
                     </div>
                   ))}
                 </div>
@@ -770,13 +850,8 @@ export default function Dashboard() {
                   <p className="text-xs text-gray-400 mb-2 font-medium">Horas de estudo</p>
                   {estudoData.map((e,i)=>(
                     <div key={i} className="mb-2">
-                      <div className="flex justify-between text-xs mb-0.5">
-                        <span className="text-gray-300">{e.nome}</span>
-                        <span className="text-gray-400">{e.total.toLocaleString("pt-BR")} ({(e.total/total*100).toFixed(2)}%)</span>
-                      </div>
-                      <div className="h-1.5 bg-gray-800 rounded-full">
-                        <div className="h-full rounded-full" style={{width:`${e.total/total*100}%`,background:CORES_RENDA[i]}}/>
-                      </div>
+                      <div className="flex justify-between text-xs mb-0.5"><span className="text-gray-300">{e.nome}</span><span className="text-gray-400">{e.total.toLocaleString("pt-BR")}</span></div>
+                      <div className="h-1.5 bg-gray-800 rounded-full"><div className="h-full rounded-full" style={{width:`${e.total/total*100}%`,background:CORES_RENDA[i]}}/></div>
                     </div>
                   ))}
                 </div>
@@ -796,16 +871,13 @@ export default function Dashboard() {
             {PERFIS_CLUSTER.map((p,i)=>(
               <div key={i} className="bg-gray-800/60 border border-gray-700 rounded-xl p-3 flex gap-3 items-start">
                 <span className="w-3 h-3 rounded-full mt-0.5 shrink-0" style={{background:CORES_CLUSTER[i]}}/>
-                <div>
-                  <p className="text-xs font-semibold text-gray-200">Cluster {i} — {p.rotulo}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{p.detalhe}</p>
-                </div>
+                <div><p className="text-xs font-semibold text-gray-200">Cluster {i} — {p.rotulo}</p><p className="text-xs text-gray-500 mt-0.5">{p.detalhe}</p></div>
               </div>
             ))}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <ScatterPCA clusterGrp={clusterGrp}/>
-            <Section title="Perfil médio por cluster — Radar" sub="Comparação das 3 dimensões de nota entre os perfis">
+            <Section title="Perfil médio por cluster — Radar">
               <ResponsiveContainer width="100%" height={280}>
                 <RadarChart data={radarData}>
                   <PolarGrid stroke="#374151"/>
@@ -832,7 +904,7 @@ export default function Dashboard() {
                 ))}
               </div>
               <div className="mt-4 pt-3 border-t border-gray-800 text-xs text-gray-500">
-                Acurácia: <span className="text-emerald-400 font-semibold">{acuracia}%</span>{" · "}100 árvores · validação hold-out 20%
+                Acurácia: <span className="text-emerald-400 font-semibold">{acuracia}%</span>{" · "}100 árvores · hold-out 20%
               </div>
             </Section>
             <Section title="Métricas por classe" sub="Precisão do classificador por faixa de desempenho">
@@ -846,9 +918,7 @@ export default function Dashboard() {
                     {([["Precisão",m.precision],["Recall",m.recall],["Support",m.support]] as [string,number][]).map(([label,valor],j)=>(
                       <div key={j} className="bg-gray-800 rounded-lg p-2 text-center">
                         <p className="text-gray-500">{label}</p>
-                        <p className="text-white font-semibold">
-                          {typeof valor==="number"&&valor<2?(valor*100).toFixed(2)+"%":Number(valor).toLocaleString("pt-BR")}
-                        </p>
+                        <p className="text-white font-semibold">{typeof valor==="number"&&valor<2?(valor*100).toFixed(2)+"%":Number(valor).toLocaleString("pt-BR")}</p>
                       </div>
                     ))}
                   </div>
