@@ -78,6 +78,12 @@ type UFItem       = { uf:string; nome:string; total:number; media:number; regiao
 type RegiaoItem   = { regiao:string; total:number; media:number };
 type CoberturaItem= { ano:string; validos:number; total:number; sem_nota:number; pct_validos:number };
 type VGData       = { modalidade:ModalItem[]; rede:RedeItem[]; por_uf:UFItem[]; por_regiao:RegiaoItem[]; cobertura:CoberturaItem[]; resumo:{total_extraido:number;total_validos:number;total_sem_nota:number;pct_validos:number} };
+type EvolCurso    = { curso:string; "2014":number|null; "2017":number|null; "2021":number|null };
+type RendaFaixa   = { nome:string; codigo:string; baixo:number; medio:number; alto:number; total:number; pct_baixo:number; pct_medio:number; pct_alto:number };
+type InetItem     = { nome:string; codigo:string; total:number; media:number };
+type HistItem     = { faixa:string; "2014":number; "2017":number; "2021":number };
+type MatrizItem   = { real:string; baixo:number; medio:number; alto:number; total_real:number; acerto:number; pct_acerto:number };
+type AnaliseData  = { evolucao_por_curso:EvolCurso[]; renda_vs_faixa:RendaFaixa[]; acesso_internet:InetItem[]; histograma:HistItem[]; matriz_confusao:MatrizItem[]; total_matriz:number };
 
 const TT = { contentStyle:{ backgroundColor:"#1f2937", border:"none", borderRadius:8, fontSize:12 } };
 
@@ -289,14 +295,15 @@ export default function Dashboard() {
   const [habitos,    setHabitos]    = useState<HabitosData|null>(null);
   const [generoData, setGeneroData] = useState<GeneroData|null>(null);
   const [vgData,     setVgData]     = useState<VGData|null>(null);
+  const [analiseData,setAnaliseData]= useState<AnaliseData|null>(null);
   const [loading,    setLoading]    = useState(true);
 
   useEffect(()=>{
     axios.get("/api/filtros").then(res=>{
       setCursos(res.data.cursos??[]); setTipos(res.data.tipos??[]); setTodasUFs(res.data.ufs??[]);
     }).catch(console.error);
-    // Visão geral não depende de filtros — busca uma vez
     axios.get("/api/visao-geral").then(res=>setVgData(res.data)).catch(console.error);
+    axios.get("/api/analise").then(res=>setAnaliseData(res.data)).catch(console.error);
   },[]);
 
   useEffect(()=>{
@@ -409,6 +416,20 @@ export default function Dashboard() {
   const regiaoData  = vgData?.por_regiao??[];
   const cobertData  = vgData?.cobertura??[];
   const resumoVG    = vgData?.resumo;
+
+  // dados Analise
+  const evolCursos  = analiseData?.evolucao_por_curso??[];
+  const rendaFaixa  = analiseData?.renda_vs_faixa??[];
+  const inetData    = analiseData?.acesso_internet??[];
+  const histData    = analiseData?.histograma??[];
+  const matrizData  = analiseData?.matriz_confusao??[];
+  const totalMatriz = analiseData?.total_matriz??0;
+
+  // Cores para matriz de confusão
+  const matrizCor = (real:string, prev:string, val:number, total:number) => {
+    if (real === prev) return `rgba(16,185,129,${Math.min(0.15 + val/total*0.7, 0.85)})`;
+    return `rgba(239,68,68,${Math.min(0.05 + val/total*3, 0.6)})`;
+  };
 
   // ── Render ────────────────────────────────────────────────
   return (
@@ -558,6 +579,44 @@ export default function Dashboard() {
             </Section>
           </div>
 
+          {/* Evolução por curso + Histograma */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Section title="Evolução da média por curso (2014–2021)" sub="Cada linha = um curso · CC Bacharelado teve a maior queda (−42%)">
+              <ResponsiveContainer width="100%" height={260}>
+                <LineChart margin={{top:8,right:8,left:0,bottom:8}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                  <XAxis dataKey="ano" type="number" domain={[2014,2021]} ticks={[2014,2017,2021]} tick={{fill:"#9ca3af",fontSize:11}}/>
+                  <YAxis domain={[20,65]} tick={{fill:"#9ca3af",fontSize:11}}/>
+                  <Tooltip {...TT}/><Legend wrapperStyle={{fontSize:11}}/>
+                  {evolCursos.map((curso,i)=>(
+                    <Line key={curso.curso} type="monotone"
+                      data={[
+                        {ano:2014,media:curso["2014"]},
+                        {ano:2017,media:curso["2017"]},
+                        {ano:2021,media:curso["2021"]},
+                      ].filter(d=>d.media!==null)}
+                      dataKey="media" name={curso.curso}
+                      stroke={CORES_GRADIENTE[i%CORES_GRADIENTE.length]}
+                      strokeWidth={2} dot={{r:4}} connectNulls={false}/>
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </Section>
+            <Section title="Distribuição de notas por ano" sub="Histograma em faixas de 10 pontos — 2021 concentrou-se em 20-30 pts">
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={histData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                  <XAxis dataKey="faixa" tick={{fill:"#9ca3af",fontSize:10}} angle={-30} textAnchor="end" height={40}/>
+                  <YAxis tick={{fill:"#9ca3af",fontSize:11}} tickFormatter={v=>`${(v/1000).toFixed(0)}k`}/>
+                  <Tooltip {...TT}/><Legend/>
+                  <Bar dataKey="2014" name="2014" fill="#6366f1" radius={[3,3,0,0]} barSize={14}/>
+                  <Bar dataKey="2017" name="2017" fill="#10b981" radius={[3,3,0,0]} barSize={14}/>
+                  <Bar dataKey="2021" name="2021" fill="#f59e0b" radius={[3,3,0,0]} barSize={14}/>
+                </BarChart>
+              </ResponsiveContainer>
+            </Section>
+          </div>
+
           {/* Por estado */}
           <Section title="Estudantes e média NT_GER por estado" sub="Todos os estados brasileiros com dados de Computação no ENADE">
             <ResponsiveContainer width="100%" height={300}>
@@ -701,6 +760,23 @@ export default function Dashboard() {
               <p className="text-xs text-amber-400 mt-2">⚠ Viúvos (n=196) e separados (n=4.195) têm amostras pequenas — interpretar com cautela.</p>
             </Section>
           </div>
+
+          {/* Renda × proporção por faixa — 100% stacked */}
+          <Section title="Renda familiar × proporção por faixa de desempenho" sub="Renda determina quase que completamente a faixa de nota — segregação quase perfeita">
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={rendaFaixa} layout="vertical" barSize={28}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                <XAxis type="number" domain={[0,100]} tickFormatter={v=>`${v}%`} tick={{fill:"#9ca3af",fontSize:11}}/>
+                <YAxis type="category" dataKey="nome" tick={{fill:"#9ca3af",fontSize:11}} width={80}/>
+                <Tooltip {...TT} formatter={(v)=>[`${Number(v??0).toFixed(1)}%`,""]}/>
+                <Legend/>
+                <Bar dataKey="pct_baixo" name="Faixa baixo" fill="#ef4444" stackId="s" radius={[0,0,0,0]}/>
+                <Bar dataKey="pct_medio" name="Faixa médio" fill="#f59e0b" stackId="s" radius={[0,0,0,0]}/>
+                <Bar dataKey="pct_alto"  name="Faixa alto"  fill="#10b981" stackId="s" radius={[0,4,4,0]}/>
+              </BarChart>
+            </ResponsiveContainer>
+            <p className="text-xs text-gray-500 mt-2">Renda 0–1: concentração quase total na faixa baixa. Renda 4–5: concentração total na faixa alto. Confirma correlação r=0,951.</p>
+          </Section>
         </>}
 
         {/* ── ABA 2: Raça & Gênero ── */}
@@ -822,6 +898,36 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {habitosGrupo2.map(h=><HabitoCard key={h.variavel} habito={h}/>)}
           </div>
+          {/* Acesso à internet */}
+          <Section title="Acesso à internet × Nota" sub="Proxy de condição socioeconômica — progressão de 14,1 pts (sem acesso) a 72,3 pts (sempre acessa)">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={inetData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                  <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} domain={[0,85]}/>
+                  <YAxis type="category" dataKey="nome" tick={{fill:"#9ca3af",fontSize:10}} width={130}/>
+                  <Tooltip {...TT}/>
+                  <Bar dataKey="media" name="Média NT_GER" radius={[0,4,4,0]}>
+                    {inetData.map((_,i)=><Cell key={i} fill={CORES_RENDA[i+1<CORES_RENDA.length?i+1:i]}/>)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="flex flex-col justify-center gap-3">
+                {inetData.map((d,i)=>(
+                  <div key={i}>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-gray-300">{d.nome}</span>
+                      <span className="font-semibold" style={{color:CORES_RENDA[i+1<CORES_RENDA.length?i+1:i]}}>{d.media.toFixed(1)} pts</span>
+                    </div>
+                    <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full" style={{width:`${d.media/85*100}%`,background:CORES_RENDA[i+1<CORES_RENDA.length?i+1:i]}}/>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-0.5">{d.total.toLocaleString("pt-BR")} estudantes</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Section>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <Section title="Comparativo: trabalho vs estudo por intensidade">
               <ResponsiveContainer width="100%" height={230}>
@@ -926,6 +1032,65 @@ export default function Dashboard() {
               ))}
             </Section>
           </div>
+
+          {/* Matriz de confusão */}
+          <Section title="Matriz de confusão — Random Forest" sub="Verde = acerto · Vermelho = erro · Erros só ocorrem entre classes adjacentes (nunca baixo↔alto)">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-center">
+              <div>
+                {/* Header */}
+                <div className="grid grid-cols-4 gap-1 mb-1">
+                  <div/>
+                  {["Prev. baixo","Prev. médio","Prev. alto"].map(h=>(
+                    <div key={h} className="text-xs text-gray-400 text-center py-1">{h}</div>
+                  ))}
+                </div>
+                {matrizData.map((row,i)=>(
+                  <div key={i} className="grid grid-cols-4 gap-1 mb-1">
+                    <div className="text-xs text-gray-400 flex items-center justify-end pr-2 capitalize">
+                      Real {row.real}
+                    </div>
+                    {(["baixo","medio","alto"] as const).map(prev=>{
+                      const val = row[prev as keyof MatrizItem] as number;
+                      const pct = totalMatriz>0?val/totalMatriz:0;
+                      const isAcerto = row.real===prev;
+                      return (
+                        <div key={prev} className="rounded-lg p-3 text-center"
+                          style={{background: isAcerto ? `rgba(16,185,129,${0.15+pct*5})` : val>0 ? `rgba(239,68,68,${0.1+pct*8})` : "rgba(55,65,81,0.3)"}}>
+                          <p className="text-sm font-bold" style={{color: isAcerto ? "#10b981" : val>0 ? "#ef4444" : "#6b7280"}}>
+                            {val.toLocaleString("pt-BR")}
+                          </p>
+                          <p className="text-xs" style={{color: isAcerto ? "#6ee7b7" : "#9ca3af"}}>
+                            {totalMatriz>0?(val/totalMatriz*100).toFixed(1):0}%
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+                <p className="text-xs text-gray-500 mt-3">Total: {totalMatriz.toLocaleString("pt-BR")} predições · Diagonal = acertos · Erros entre extremos (baixo↔alto) = 0</p>
+              </div>
+              <div className="space-y-4">
+                <p className="text-sm font-semibold text-gray-200">Acurácia por classe</p>
+                {matrizData.map((row,i)=>(
+                  <div key={i}>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="capitalize text-gray-300">Faixa {row.real}</span>
+                      <span className="font-semibold" style={{color:["#10b981","#f59e0b","#6366f1"][i]}}>{row.pct_acerto}%</span>
+                    </div>
+                    <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full" style={{width:`${row.pct_acerto}%`,background:["#10b981","#f59e0b","#6366f1"][i]}}/>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-0.5">{row.acerto.toLocaleString("pt-BR")} acertos de {row.total_real.toLocaleString("pt-BR")}</p>
+                  </div>
+                ))}
+                <div className="bg-gray-800/60 rounded-xl p-3 mt-2">
+                  <p className="text-xs text-gray-400">Acurácia geral</p>
+                  <p className="text-2xl font-bold text-emerald-400">{acuracia}%</p>
+                  <p className="text-xs text-gray-500">100 árvores · hold-out 20%</p>
+                </div>
+              </div>
+            </div>
+          </Section>
         </>}
 
       </main>
