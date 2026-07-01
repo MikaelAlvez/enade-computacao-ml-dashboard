@@ -16,7 +16,6 @@ const CORES_GRADIENTE = ["#4f46e5","#6366f1","#818cf8","#a5b4fc","#c7d2fe","#e0e
 const CORES_RENDA     = ["#ef4444","#f97316","#eab308","#84cc16","#22c55e","#10b981"];
 const CORES_RACA      = ["#94a3b8","#6366f1","#8b5cf6","#a78bfa","#c4b5fd","#ddd6fe"];
 const CORES_HABITO    = ["#534AB7","#7F77DD","#0F6E56","#1D9E75","#185FA5"];
-const CORES_SEXO      = ["#6366f1","#ec4899"];
 const CORES_RACA_G    = ["#94a3b8","#6366f1","#8b5cf6","#a78bfa","#c4b5fd","#ddd6fe"];
 const CORES_REGIAO    = ["#2a78d6","#1baf7a","#eda100","#4a3aa7","#e34948"];
 const LINE_HABITO     = "#888780";
@@ -27,7 +26,7 @@ const MEDIAS_PCA = [31.7, 62.6, 50.8, 74.9];
 const TOTAL_PCA  = [65451, 27646, 29014, 5132];
 
 const ANOS  = ["Todos","2014","2017","2021"];
-const ABAS  = ["Visão Geral","Socioeconômico","Raça & Gênero","Hábitos","Clusters & ML"];
+const ABAS  = ["Visão Geral","Socioeconômico","Raça/Cor","Hábitos","Clusters & ML"];
 const FAIXAS_RENDA = ["Até 1,5 SM","1,5 a 3 SM","3 a 4,5 SM","4,5 a 6 SM","6 a 10 SM","10 a 30 SM"];
 const PERFIS_CLUSTER = [
   { rotulo:"Desempenho médio",         detalhe:"Renda média · IES privada" },
@@ -65,10 +64,14 @@ type HabitosData  = { total:number; habitos:HabitoResult[] };
 type PontoCluster = { x:number; y:number; cluster_id:number; total:number; media_nota:number; r:number };
 type ImportItemApi = { feature:string; valor:number };
 type MetricaClasse = { classe:string; f1:number; precision:number; recall:number; support:number };
-type GeneroItem   = { sexo:string; codigo:string; total:number; pct:number; media_nota:number };
 type RacaItem     = { nome:string; codigo:string; total:number; pct:number; media_nota:number };
-type CruzItem     = { raca:string; codigo:string; feminino:number|null; masculino:number|null; total_f:number; total_m:number };
-type GeneroData   = { total:number; genero:GeneroItem[]; raca:RacaItem[]; cruzamento:CruzItem[] };
+type RacaData     = { total:number; raca:RacaItem[] };
+type RendaRedeItem= { nome:string; codigo:string; publica:number; privada:number; n_pub:number; n_priv:number; delta:number };
+type CursoRedeItem= { curso:string; publica:number; privada:number; delta:number };
+type RacaRendaCell= { codigo:string; nome:string; media:number; total:number };
+type RacaRendaItem= { raca:string; rendas:RacaRendaCell[] };
+type FinRedeItem  = { nome:string; codigo:string; publica:number|null; privada:number|null };
+type BivData      = { renda_vs_rede:RendaRedeItem[]; curso_vs_rede:CursoRedeItem[]; raca_vs_renda:RacaRendaItem[]; fin_vs_rede:FinRedeItem[]; composicao_racial_renda:Record<string,number|string>[] };
 type FinItem      = { nome:string; codigo:string; total:number; media:number };
 type EcItem       = { nome:string; codigo:string; total:number; media:number };
 type NtTipo       = { tipo:string; total:number; media_ger:number; media_fg:number; media_ce:number };
@@ -293,7 +296,8 @@ export default function Dashboard() {
   const [clusters,   setClusters]   = useState<Record<string,unknown>|null>(null);
   const [ml,         setMl]         = useState<Record<string,unknown>|null>(null);
   const [habitos,    setHabitos]    = useState<HabitosData|null>(null);
-  const [generoData, setGeneroData] = useState<GeneroData|null>(null);
+  const [racaData,  setRacaData]  = useState<RacaData|null>(null);
+  const [bivData,   setBivData]   = useState<BivData|null>(null);
   const [vgData,     setVgData]     = useState<VGData|null>(null);
   const [analiseData,setAnaliseData]= useState<AnaliseData|null>(null);
   const [loading,    setLoading]    = useState(true);
@@ -304,6 +308,7 @@ export default function Dashboard() {
     }).catch(console.error);
     axios.get("/api/visao-geral").then(res=>setVgData(res.data)).catch(console.error);
     axios.get("/api/analise").then(res=>setAnaliseData(res.data)).catch(console.error);
+    axios.get("/api/bivariado").then(res=>setBivData(res.data)).catch(console.error);
   },[]);
 
   useEffect(()=>{
@@ -346,11 +351,11 @@ export default function Dashboard() {
       axios.get(`/api/clusters${qs}`),
       axios.get("/api/ml-metricas"),
       axios.get(`/api/habitos${qs}`),
-      axios.get(`/api/genero${qs}`),
+      axios.get(`/api/raca${qs}`),
     ]).then(([s,so,c,m,h,g])=>{
       if (cancelled) return;
       setStats(s.data); setSocio(so.data); setClusters(c.data);
-      setMl(m.data); setHabitos(h.data); setGeneroData(g.data);
+      setMl(m.data); setHabitos(h.data); setRacaData(g.data);
     }).catch(console.error)
       .finally(()=>{ if (!cancelled) setLoading(false); });
     return ()=>{ cancelled=true; };
@@ -403,11 +408,17 @@ export default function Dashboard() {
   const habitosGrupo2 = (habitos?.habitos??[]).filter(h=>["qe_uso_biblioteca","qe_acesso_internet"].includes(h.variavel));
   const findHabitoPct = (variavel:string,categoria:string) => (habitos?.habitos.find(h=>h.variavel===variavel)?.dados.find(d=>d.categoria===categoria)?.pct??0).toFixed(1)+"%";
 
-  const mediaF    = generoData?.genero.find(g=>g.codigo==="F")?.media_nota??0;
-  const mediaM    = generoData?.genero.find(g=>g.codigo==="M")?.media_nota??0;
-  const difGenero = Math.abs(mediaM-mediaF).toFixed(1);
 
   const labelLocalizacao = filtroMunicio?`Município ${filtroMunicio}`:filtroUF?ufsRegiao.find(u=>String(u.co_uf)===filtroUF)?.nome??filtroUF:filtroRegiao?REGIOES.find(rg=>rg.value===filtroRegiao)?.label??"":"";
+
+  // dados bivariados
+  const rendaVsRede  = bivData?.renda_vs_rede??[];
+  const cursoVsRede  = bivData?.curso_vs_rede??[];
+  const racaVsRenda  = bivData?.raca_vs_renda??[];
+  const finVsRede    = bivData?.fin_vs_rede??[];
+  const compRacial   = bivData?.composicao_racial_renda??[];
+  const RACAS_COMP   = ["Branca","Preta","Parda","Amarela","Indígena"];
+  const CORES_RACA_BIV = ["#6366f1","#8b5cf6","#a78bfa","#c4b5fd","#ddd6fe"];
 
   // dados VG
   const modalData   = vgData?.modalidade??[];
@@ -560,6 +571,18 @@ export default function Dashboard() {
                   <YAxis type="category" dataKey="nome" tick={{fill:"#9ca3af",fontSize:9}} width={200}/>
                   <Tooltip {...TT}/>
                   <Bar dataKey="media" name="Média nota" radius={[0,4,4,0]}>{cursoData.map((_,i)=><Cell key={i} fill={CORES_GRADIENTE[i%CORES_GRADIENTE.length]}/>)}</Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </Section>
+            <Section title="Curso × Pública vs Privada" sub="CC Licenciatura pública supera privada em 8,5 pts — único curso com inversão clara">
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={cursoVsRede} layout="vertical" barCategoryGap="20%">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                  <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} domain={[30,65]}/>
+                  <YAxis type="category" dataKey="curso" tick={{fill:"#9ca3af",fontSize:9}} width={90}/>
+                  <Tooltip {...TT}/><Legend/>
+                  <Bar dataKey="publica" name="Pública"  fill="#10b981" radius={[0,4,4,0]} barSize={14}/>
+                  <Bar dataKey="privada" name="Privada"  fill="#6366f1" radius={[0,4,4,0]} barSize={14}/>
                 </BarChart>
               </ResponsiveContainer>
             </Section>
@@ -761,6 +784,35 @@ export default function Dashboard() {
             </Section>
           </div>
 
+          {/* Renda × Pública vs Privada */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Section title="Renda × Pública vs Privada" sub="Dentro da mesma renda, pública e privada têm notas quase iguais — a renda é o fator determinante">
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={rendaVsRede} barCategoryGap="20%">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                  <XAxis dataKey="nome" tick={{fill:"#9ca3af",fontSize:10}} angle={-15} textAnchor="end" height={40}/>
+                  <YAxis tick={{fill:"#9ca3af",fontSize:11}} domain={[0,90]}/>
+                  <Tooltip {...TT}/><Legend/>
+                  <Bar dataKey="publica" name="Pública"  fill="#10b981" radius={[4,4,0,0]} barSize={22}/>
+                  <Bar dataKey="privada" name="Privada"  fill="#6366f1" radius={[4,4,0,0]} barSize={22}/>
+                </BarChart>
+              </ResponsiveContainer>
+              <p className="text-xs text-gray-500 mt-2">Δ máximo entre pública e privada: {rendaVsRede.length>0?Math.max(...rendaVsRede.map(r=>Math.abs(r.delta))).toFixed(1):"—"} pts — diferença pequena em todas as faixas.</p>
+            </Section>
+            <Section title="Financiamento × Pública vs Privada" sub="ProUni é exclusivo de IES privadas — FIES em ambas tem notas similares">
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={finVsRede} barCategoryGap="20%">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                  <XAxis dataKey="nome" tick={{fill:"#9ca3af",fontSize:10}} angle={-15} textAnchor="end" height={40}/>
+                  <YAxis tick={{fill:"#9ca3af",fontSize:11}} domain={[0,90]}/>
+                  <Tooltip {...TT}/><Legend/>
+                  <Bar dataKey="publica" name="Pública"  fill="#10b981" radius={[4,4,0,0]} barSize={22}/>
+                  <Bar dataKey="privada" name="Privada"  fill="#6366f1" radius={[4,4,0,0]} barSize={22}/>
+                </BarChart>
+              </ResponsiveContainer>
+            </Section>
+          </div>
+
           {/* Renda × proporção por faixa — 100% stacked */}
           <Section title="Renda familiar × proporção por faixa de desempenho" sub="Renda determina quase que completamente a faixa de nota — segregação quase perfeita">
             <ResponsiveContainer width="100%" height={280}>
@@ -779,112 +831,140 @@ export default function Dashboard() {
           </Section>
         </>}
 
-        {/* ── ABA 2: Raça & Gênero ── */}
+                {/* ── ABA 2: Raça/Cor ── */}
         {aba===2 && <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card title="Estudantes feminino"    value={generoData?.genero.find(g=>g.codigo==="F")?.total.toLocaleString("pt-BR")??"—"} sub={`${generoData?.genero.find(g=>g.codigo==="F")?.pct.toFixed(1)??"—"}% do total`} color="rose"/>
-            <Card title="Média NT_GER feminino"  value={generoData?.genero.find(g=>g.codigo==="F")?.media_nota.toFixed(1)??"—"} sub="pontos — escala 0–100" color="purple"/>
-            <Card title="Estudantes masculino"   value={generoData?.genero.find(g=>g.codigo==="M")?.total.toLocaleString("pt-BR")??"—"} sub={`${generoData?.genero.find(g=>g.codigo==="M")?.pct.toFixed(1)??"—"}% do total`} color="indigo"/>
-            <Card title="Média NT_GER masculino" value={generoData?.genero.find(g=>g.codigo==="M")?.media_nota.toFixed(1)??"—"} sub="pontos — escala 0–100" color="sky"/>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Section title="Distribuição por gênero" sub="Composição do corpo discente nos cursos de Computação">
-              <ResponsiveContainer width="100%" height={240}>
-                <PieChart>
-                  <Pie data={generoData?.genero??[]} cx="50%" cy="50%" outerRadius={85} dataKey="total" nameKey="sexo"
-                    label={({name,percent})=>`${name} ${((percent??0)*100).toFixed(1)}%`} labelLine={false}>
-                    {(generoData?.genero??[]).map((_,i)=><Cell key={i} fill={CORES_SEXO[i%CORES_SEXO.length]}/>)}
-                  </Pie>
-                  <Tooltip {...TT}/>
-                </PieChart>
-              </ResponsiveContainer>
-            </Section>
-            <Section title="Média NT_GER por gênero" sub={`Diferença de ${difGenero} pontos entre os gêneros`}>
-              <ResponsiveContainer width="100%" height={240}>
-                <BarChart data={generoData?.genero??[]} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
-                  <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} domain={[0,90]}/>
-                  <YAxis type="category" dataKey="sexo" tick={{fill:"#9ca3af",fontSize:12}} width={80}/>
-                  <Tooltip {...TT}/>
-                  <Bar dataKey="media_nota" name="Média NT_GER" radius={[0,4,4,0]} barSize={40}>
-                    {(generoData?.genero??[]).map((_,i)=><Cell key={i} fill={CORES_SEXO[i%CORES_SEXO.length]}/>)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-              <p className="text-xs text-amber-400 mt-2">⚠ Diferença mediada pela renda e composição de cursos.</p>
-            </Section>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <Card title="Total de estudantes" value={(racaData?.total??0).toLocaleString("pt-BR")} sub="com raça/cor declarada" color="indigo"/>
+            <Card title="Grupo maior" value={racaData?.raca[1]?.nome??"—"} sub={`${racaData?.raca[1]?.pct.toFixed(1)??"—"}% do total`} color="purple"/>
+            <Card title="Maior média" value={racaData?.raca.slice().sort((a,b)=>b.media_nota-a.media_nota)[0]?.nome??"—"} sub={`${racaData?.raca.slice().sort((a,b)=>b.media_nota-a.media_nota)[0]?.media_nota.toFixed(1)??"—"} pts`} color="green"/>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <Section title="Raça/Cor autodeclarada × Média NT_GER" sub="Desigualdade racial nos resultados do ENADE">
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={generoData?.raca??[]}>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={racaData?.raca??[]}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
                   <XAxis dataKey="nome" tick={{fill:"#9ca3af",fontSize:11}}/>
                   <YAxis tick={{fill:"#9ca3af",fontSize:12}} domain={[0,90]}/>
                   <Tooltip {...TT}/>
                   <Bar dataKey="media_nota" name="Média NT_GER" radius={[4,4,0,0]}>
-                    {(generoData?.raca??[]).map((_,i)=><Cell key={i} fill={CORES_RACA_G[i%CORES_RACA_G.length]}/>)}
+                    {(racaData?.raca??[]).map((_,i)=><Cell key={i} fill={CORES_RACA_G[i%CORES_RACA_G.length]}/>)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </Section>
             <Section title="Distribuição de estudantes por raça/cor" sub="Composição racial do corpo discente">
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
-                  <Pie data={generoData?.raca??[]} cx="50%" cy="50%" outerRadius={95} dataKey="total" nameKey="nome"
+                  <Pie data={racaData?.raca??[]} cx="50%" cy="50%" outerRadius={100} dataKey="total" nameKey="nome"
                     label={({name,percent})=>`${name} ${((percent??0)*100).toFixed(1)}%`} labelLine={false}>
-                    {(generoData?.raca??[]).map((_,i)=><Cell key={i} fill={CORES_RACA_G[i%CORES_RACA_G.length]}/>)}
+                    {(racaData?.raca??[]).map((_,i)=><Cell key={i} fill={CORES_RACA_G[i%CORES_RACA_G.length]}/>)}
                   </Pie>
                   <Tooltip {...TT}/>
                 </PieChart>
               </ResponsiveContainer>
             </Section>
           </div>
-          <Section title="Média NT_GER por gênero e raça/cor" sub="Comparativo feminino vs masculino dentro de cada grupo racial">
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={generoData?.cruzamento??[]} barCategoryGap="20%">
+          {/* Composição racial por faixa de renda */}
+          <Section title="Composição racial por faixa de renda" sub="% de cada grupo racial dentro de cada faixa — segregação socioeconômica por raça">
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={compRacial} layout="vertical" barCategoryGap="15%">
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
-                <XAxis dataKey="raca" tick={{fill:"#9ca3af",fontSize:11}}/>
-                <YAxis tick={{fill:"#9ca3af",fontSize:12}} domain={[0,90]}/>
-                <Tooltip {...TT}/><Legend/>
-                <Bar dataKey="feminino"  name="Feminino"  fill={CORES_SEXO[1]} radius={[4,4,0,0]} barSize={20}/>
-                <Bar dataKey="masculino" name="Masculino" fill={CORES_SEXO[0]} radius={[4,4,0,0]} barSize={20}/>
+                <XAxis type="number" domain={[0,100]} tickFormatter={v=>`${v}%`} tick={{fill:"#9ca3af",fontSize:11}}/>
+                <YAxis type="category" dataKey="nome" tick={{fill:"#9ca3af",fontSize:11}} width={70}/>
+                <Tooltip {...TT} formatter={(v)=>[`${Number(v??0).toFixed(1)}%`,""]}/>
+                <Legend/>
+                {RACAS_COMP.map((r,i)=>(
+                  <Bar key={r} dataKey={r} name={r} fill={CORES_RACA_BIV[i]} stackId="s" barSize={20}/>
+                ))}
               </BarChart>
             </ResponsiveContainer>
+            <p className="text-xs text-amber-400 mt-2">⚠ Cada grupo racial ocupa nichos de renda distintos — Brancos concentrados em R1-R2, Pardos em R3-R4, Amarelos em R4-R5. Desigualdade racial e desigualdade de renda são quase a mesma variável no Brasil.</p>
           </Section>
-          <Section title="Índice de desigualdade por grupo racial" sub="Comparativo entre grupos raciais — nota geral, feminino e masculino">
+
+          {/* Raça × Renda heatmap */}
+          <Section title="Nota média por raça e faixa de renda" sub="Heatmap — células vazias = combinação inexistente no banco (segregação socioeconômica)">
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-gray-700">
-                    {["Raça/Cor","Estudantes","% total","Média geral","Média F","Média M","Desempenho"].map(h=>(
-                      <th key={h} className={`py-2 text-gray-400 ${h==="Raça/Cor"||h==="Desempenho"?"text-left":"text-right"}`}>{h}</th>
+                    <th className="py-2 text-left text-gray-400 w-24">Raça/Cor</th>
+                    {["Não decl.","≤1,5SM","1,5–3SM","3–4,5SM","4,5–6SM","6–10SM"].map(r=>(
+                      <th key={r} className="py-2 text-center text-gray-400">{r}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {(generoData?.raca??[]).map((raca,i)=>{
-                    const cruz=generoData?.cruzamento.find(c=>c.codigo===raca.codigo);
+                  {racaVsRenda.map((row,i)=>(
+                    <tr key={i} className="border-b border-gray-800">
+                      <td className="py-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full" style={{background:CORES_RACA_G[i%CORES_RACA_G.length]}}/>
+                          <span className="text-gray-200">{row.raca}</span>
+                        </div>
+                      </td>
+                      {["0","1","2","3","4","5"].map(cod=>{
+                        const cell = row.rendas.find(r=>r.codigo===cod);
+                        const pct  = cell ? Math.min(cell.media/90, 1) : 0;
+                        return (
+                          <td key={cod} className="py-2 text-center">
+                            {cell ? (
+                              <div className="inline-block px-2 py-1 rounded text-xs font-semibold"
+                                style={{background:`rgba(${i===0?'99,102,241':i===1?'139,92,246':i===2?'167,139,250':i===3?'196,181,253':'221,214,254'},${0.15+pct*0.5})`,color:CORES_RACA_G[i%CORES_RACA_G.length]}}>
+                                {cell.media.toFixed(1)}
+                              </div>
+                            ) : (
+                              <span className="text-gray-700">—</span>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Section>
+
+          <Section title="Índice de desigualdade por grupo racial" sub="Comparativo entre grupos raciais autodeclarados — nota geral">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-gray-700">
+                    {["Raça/Cor","Estudantes","% total","Média NT_GER","Desempenho relativo"].map(h=>(
+                      <th key={h} className={`py-2 text-gray-400 ${h==="Raça/Cor"||h==="Desempenho relativo"?"text-left":"text-right"}`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(racaData?.raca??[]).map((raca,i)=>{
                     const pctNota=Math.min(raca.media_nota/90*100,100);
                     return (
                       <tr key={i} className="border-b border-gray-800 hover:bg-gray-800/50">
-                        <td className="py-2 text-gray-200"><div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full" style={{background:CORES_RACA_G[i%CORES_RACA_G.length]}}/>{raca.nome}</div></td>
+                        <td className="py-2 text-gray-200">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full" style={{background:CORES_RACA_G[i%CORES_RACA_G.length]}}/>
+                            {raca.nome}
+                          </div>
+                        </td>
                         <td className="py-2 text-right text-gray-300">{raca.total.toLocaleString("pt-BR")}</td>
                         <td className="py-2 text-right text-gray-400">{raca.pct.toFixed(1)}%</td>
                         <td className="py-2 text-right font-semibold" style={{color:CORES_RACA_G[i%CORES_RACA_G.length]}}>{raca.media_nota.toFixed(2)}</td>
-                        <td className="py-2 text-right" style={{color:"#ec4899"}}>{cruz?.feminino?.toFixed(1)??"—"}</td>
-                        <td className="py-2 text-right" style={{color:"#6366f1"}}>{cruz?.masculino?.toFixed(1)??"—"}</td>
-                        <td className="py-2 pl-4"><div className="h-1.5 bg-gray-700 rounded-full w-32"><div className="h-full rounded-full" style={{width:`${pctNota}%`,background:CORES_RACA_G[i%CORES_RACA_G.length]}}/></div></td>
+                        <td className="py-2 pl-4">
+                          <div className="h-1.5 bg-gray-700 rounded-full w-32">
+                            <div className="h-full rounded-full" style={{width:`${pctNota}%`,background:CORES_RACA_G[i%CORES_RACA_G.length]}}/>
+                          </div>
+                        </td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
             </div>
+            <p className="text-xs text-amber-400 mt-3">⚠ Os dados de gênero (TP_SEXO) não puderam ser associados individualmente aos registros — o arquivo LGPD do INEP distribui essa variável em ordem diferente dos demais fragmentos, sem identificador único por estudante. A análise de gênero foi removida por falta de dados confiáveis.</p>
           </Section>
         </>}
 
-        {/* ── ABA 3: Hábitos ── */}
+{/* ── ABA 3: Hábitos ── */}
         {aba===3 && <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card title="Não estuda extraclasse" value={findHabitoPct("qe_horas_estudo","Nenhuma hora")} sub="nenhuma hora fora da aula" color="rose"/>
