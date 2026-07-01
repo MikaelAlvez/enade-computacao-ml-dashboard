@@ -26,7 +26,7 @@ const MEDIAS_PCA = [31.7, 62.6, 50.8, 74.9];
 const TOTAL_PCA  = [65451, 27646, 29014, 5132];
 
 const ANOS  = ["Todos","2014","2017","2021"];
-const ABAS  = ["Visão Geral","Socioeconômico","Raça/Cor","Hábitos","Clusters & ML"];
+const ABAS  = ["Visão Geral","Socioeconômico","Raça/Cor","Hábitos","Clusters & ML","Previsão"];
 const FAIXAS_RENDA = ["Até 1,5 SM","1,5 a 3 SM","3 a 4,5 SM","4,5 a 6 SM","6 a 10 SM","10 a 30 SM"];
 const PERFIS_CLUSTER = [
   { rotulo:"Desempenho médio",         detalhe:"Renda média · IES privada" },
@@ -71,6 +71,16 @@ type CursoRedeItem= { curso:string; publica:number; privada:number; delta:number
 type RacaRendaCell= { codigo:string; nome:string; media:number; total:number };
 type RacaRendaItem= { raca:string; rendas:RacaRendaCell[] };
 type FinRedeItem  = { nome:string; codigo:string; publica:number|null; privada:number|null };
+type TendItem     = { ano:number; media:number|null; projecao:number|null; tipo:string };
+type TendCurso    = { curso:string; r2:number; b1:number; confiavel:boolean; dados:TendItem[] };
+type TendRedeItem = { b1:number; r2:number; dados:TendItem[] };
+type PrevisaoData = {
+  tendencia_geral: TendItem[];
+  tendencia_cursos: TendCurso[];
+  tendencia_rede: Record<string,TendRedeItem>;
+  resumo: { tendencia_geral_b1:number; tendencia_geral_r2:number; previsao_2024:number; previsao_2027:number; cursos_confiaveis:number; cursos_nao_confiaveis:number };
+  anos_reais: number[]; anos_proj: number[];
+};
 type BivData      = { renda_vs_rede:RendaRedeItem[]; curso_vs_rede:CursoRedeItem[]; raca_vs_renda:RacaRendaItem[]; fin_vs_rede:FinRedeItem[]; composicao_racial_renda:Record<string,number|string>[] };
 type FinItem      = { nome:string; codigo:string; total:number; media:number };
 type EcItem       = { nome:string; codigo:string; total:number; media:number };
@@ -298,6 +308,7 @@ export default function Dashboard() {
   const [habitos,    setHabitos]    = useState<HabitosData|null>(null);
   const [racaData,  setRacaData]  = useState<RacaData|null>(null);
   const [bivData,   setBivData]   = useState<BivData|null>(null);
+  const [prevData,  setPrevData]  = useState<PrevisaoData|null>(null);
   const [vgData,     setVgData]     = useState<VGData|null>(null);
   const [analiseData,setAnaliseData]= useState<AnaliseData|null>(null);
   const [loading,    setLoading]    = useState(true);
@@ -309,6 +320,7 @@ export default function Dashboard() {
     axios.get("/api/visao-geral").then(res=>setVgData(res.data)).catch(console.error);
     axios.get("/api/analise").then(res=>setAnaliseData(res.data)).catch(console.error);
     axios.get("/api/bivariado").then(res=>setBivData(res.data)).catch(console.error);
+    axios.get("/api/previsao").then(res=>setPrevData(res.data)).catch(console.error);
   },[]);
 
   useEffect(()=>{
@@ -410,6 +422,34 @@ export default function Dashboard() {
 
 
   const labelLocalizacao = filtroMunicio?`Município ${filtroMunicio}`:filtroUF?ufsRegiao.find(u=>String(u.co_uf)===filtroUF)?.nome??filtroUF:filtroRegiao?REGIOES.find(rg=>rg.value===filtroRegiao)?.label??"":"";
+
+  // dados previsão
+  const tendGeral   = prevData?.tendencia_geral??[];
+  const tendCursos  = prevData?.tendencia_cursos??[];
+  const tendRede    = prevData?.tendencia_rede??{};
+  const resumoPrev  = prevData?.resumo;
+  const cursosConf  = tendCursos.filter(c=>c.confiavel);
+  const cursosNConf = tendCursos.filter(c=>!c.confiavel);
+
+  // pivot tendência geral para recharts
+  const tendGeralPivot = [2014,2017,2021,2024,2027].map(ano=>{
+    const real = tendGeral.find(d=>d.ano===ano&&d.tipo==="real");
+    const proj = tendGeral.find(d=>d.ano===ano&&d.tipo==="projecao");
+    return { ano:String(ano), real:real?.media??undefined, projecao:proj?.projecao??undefined };
+  });
+
+  // pivot rede
+  const tendRedePivot = [2014,2017,2021,2024,2027].map(ano=>{
+    const pub = tendRede["Pública"]?.dados.find(d=>d.ano===ano);
+    const prv = tendRede["Privada"]?.dados.find(d=>d.ano===ano);
+    return {
+      ano: String(ano),
+      pub_real:  pub?.media??undefined,
+      prv_real:  prv?.media??undefined,
+      pub_proj:  pub?.projecao??undefined,
+      prv_proj:  prv?.projecao??undefined,
+    };
+  });
 
   // dados bivariados
   const rendaVsRede  = bivData?.renda_vs_rede??[];
@@ -1171,6 +1211,157 @@ export default function Dashboard() {
               </div>
             </div>
           </Section>
+        </>}
+
+        {/* ── ABA 5: Previsão ── */}
+        {aba===5 && <>
+          {/* Cards resumo */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card title="Tendência geral" value={`${resumoPrev?.tendencia_geral_b1??0} pts/ano`} sub="queda acumulada desde 2014" color="rose" delta="Regressão linear OLS"/>
+            <Card title="Projeção 2024" value={`${resumoPrev?.previsao_2024??0} pts`} sub="se tendência continuar" color="amber"/>
+            <Card title="Projeção 2027" value={`${resumoPrev?.previsao_2027??0} pts`} sub="se tendência continuar" color="purple"/>
+            <Card title="Cursos confiáveis" value={`${resumoPrev?.cursos_confiaveis??0} de ${(resumoPrev?.cursos_confiaveis??0)+(resumoPrev?.cursos_nao_confiaveis??0)}`} sub="R²≥0,75 e projeção ≥20pts" color="indigo"/>
+          </div>
+
+          {/* Aviso */}
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4">
+            <p className="text-sm font-semibold text-amber-400 mb-1">⚠ Projeções exploratórias — leia antes de interpretar</p>
+            <p className="text-xs text-amber-300/80">
+              As projeções são baseadas em <strong>apenas 3 edições</strong> do ENADE (2014, 2017, 2021) usando regressão linear simples.
+              Com n=3, qualquer reta tem R²=1,0 matematicamente — isso <strong>não garante confiabilidade preditiva</strong>.
+              Fatores como COVID-19 em 2021, expansão do EAD, mudanças curriculares e políticas educacionais
+              não estão modelados. Use como indicativo de tendência, não como previsão estatisticamente robusta.
+              A próxima edição real do ENADE de Computação seria <strong>2024</strong>.
+            </p>
+          </div>
+
+          {/* Tendência geral */}
+          <Section title="Tendência da nota geral — dados reais e projeção" sub="Linha sólida = dados reais · Linha pontilhada = projeção (2024 e 2027)">
+            <ResponsiveContainer width="100%" height={280}>
+              <LineChart data={tendGeralPivot}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                <XAxis dataKey="ano" tick={{fill:"#9ca3af",fontSize:12}}/>
+                <YAxis domain={[30,52]} tick={{fill:"#9ca3af",fontSize:11}}/>
+                <Tooltip {...TT}/>
+                <Legend/>
+                <Line dataKey="real"    name="Dados reais (2014–2021)"
+                  type="monotone" stroke="#6366f1" strokeWidth={2.5}
+                  dot={{r:5,fill:"#6366f1"}} connectNulls={false}/>
+                <Line dataKey="projecao" name="Projeção (2024–2027)"
+                  type="monotone" stroke="#f59e0b" strokeWidth={2}
+                  strokeDasharray="8 4" dot={{r:5,fill:"#f59e0b"}} connectNulls={false}/>
+              </LineChart>
+            </ResponsiveContainer>
+            <div className="grid grid-cols-3 gap-3 mt-3">
+              {[["2014","47,2 pts","Referência"],["2017","44,7 pts","−2,5 pts"],["2021","41,3 pts","−3,4 pts"],["2024","38,9 pts","Projeção"],["2027","36,4 pts","Projeção"]].map(([ano,val,label])=>(
+                <div key={ano} className={`text-center p-3 rounded-xl ${ano==="2024"||ano==="2027"?"bg-amber-500/10 border border-amber-500/20":"bg-gray-800/60"}`}>
+                  <p className="text-xs text-gray-400">{ano}</p>
+                  <p className={`text-lg font-bold ${ano==="2024"||ano==="2027"?"text-amber-400":"text-white"}`}>{val}</p>
+                  <p className="text-xs text-gray-500">{label}</p>
+                </div>
+              ))}
+            </div>
+          </Section>
+
+          {/* Por curso */}
+          <Section title="Tendência por curso — apenas cursos com R² ≥ 0,75" sub="Cursos com tendência inconsistente foram excluídos por baixa confiabilidade preditiva">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {cursosConf.map((curso,i)=>{
+                const pivot = [2014,2017,2021,2024,2027].map(ano=>{
+                  const real = curso.dados.find(d=>d.ano===ano&&d.tipo==="real");
+                  const proj = curso.dados.find(d=>d.ano===ano&&d.tipo==="projecao");
+                  return { ano:String(ano), real:real?.media??undefined, projecao:proj?.projecao??undefined };
+                });
+                const cor = CORES_GRADIENTE[i%CORES_GRADIENTE.length];
+                return (
+                  <div key={curso.curso} className="bg-gray-800/40 rounded-xl p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <p className="text-sm font-semibold text-gray-200">{curso.curso}</p>
+                      <div className="flex gap-2">
+                        <span className="text-xs bg-gray-700 px-2 py-0.5 rounded text-gray-300">R²={curso.r2}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded ${curso.b1>0?"bg-emerald-500/20 text-emerald-400":"bg-rose-500/20 text-rose-400"}`}>
+                          {curso.b1>0?"↑":"↓"} {Math.abs(curso.b1).toFixed(2)} pts/ano
+                        </span>
+                      </div>
+                    </div>
+                    <ResponsiveContainer width="100%" height={160}>
+                      <LineChart data={pivot}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                        <XAxis dataKey="ano" tick={{fill:"#9ca3af",fontSize:10}}/>
+                        <YAxis domain={["auto","auto"]} tick={{fill:"#9ca3af",fontSize:10}}/>
+                        <Tooltip {...TT}/>
+                        <Line dataKey="real"     type="monotone" stroke={cor} strokeWidth={2} dot={{r:4,fill:cor}} connectNulls={false}/>
+                        <Line dataKey="projecao" type="monotone" stroke={cor} strokeWidth={1.5} strokeDasharray="6 3" dot={{r:4,fill:cor}} connectNulls={false}/>
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                );
+              })}
+            </div>
+            {cursosNConf.length > 0 && (
+              <div className="mt-4 bg-gray-800/40 rounded-xl p-3">
+                <p className="text-xs text-gray-400 mb-1">Cursos excluídos da projeção (R² {"<"} 0,75 ou projeção implausível):</p>
+                <div className="flex flex-wrap gap-2">
+                  {cursosNConf.map(c=>(
+                    <span key={c.curso} className="text-xs bg-gray-700 px-2 py-1 rounded text-gray-400">
+                      {c.curso} (R²={c.r2})
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Section>
+
+          {/* Rede */}
+          <Section title="Tendência pública vs privada — dados reais e projeção" sub="Privada cai mais rápido — convergência projetada para 2024">
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={tendRedePivot}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151"/>
+                <XAxis dataKey="ano" tick={{fill:"#9ca3af",fontSize:12}}/>
+                <YAxis domain={[34,52]} tick={{fill:"#9ca3af",fontSize:11}}/>
+                <Tooltip {...TT}/><Legend/>
+                <Line dataKey="pub_real"  name="Pública (real)"    type="monotone" stroke="#10b981" strokeWidth={2.5} dot={{r:5,fill:"#10b981"}} connectNulls={false}/>
+                <Line dataKey="pub_proj"  name="Pública (projeção)" type="monotone" stroke="#10b981" strokeWidth={2} strokeDasharray="8 4" dot={{r:4,fill:"#10b981"}} connectNulls={false}/>
+                <Line dataKey="prv_real"  name="Privada (real)"    type="monotone" stroke="#6366f1" strokeWidth={2.5} dot={{r:5,fill:"#6366f1"}} connectNulls={false}/>
+                <Line dataKey="prv_proj"  name="Privada (projeção)" type="monotone" stroke="#6366f1" strokeWidth={2} strokeDasharray="8 4" dot={{r:4,fill:"#6366f1"}} connectNulls={false}/>
+              </LineChart>
+            </ResponsiveContainer>
+            <div className="grid grid-cols-2 gap-4 mt-3">
+              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
+                <p className="text-xs text-gray-400">Pública — tendência</p>
+                <p className="text-xl font-bold text-emerald-400">{tendRede["Pública"]?.b1??0} pts/ano</p>
+                <p className="text-xs text-gray-500">Queda mais lenta</p>
+              </div>
+              <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-3 text-center">
+                <p className="text-xs text-gray-400">Privada — tendência</p>
+                <p className="text-xl font-bold text-indigo-400">{tendRede["Privada"]?.b1??0} pts/ano</p>
+                <p className="text-xs text-gray-500">Queda mais rápida</p>
+              </div>
+            </div>
+          </Section>
+
+          {/* Nota metodológica */}
+          <div className="bg-gray-900 rounded-2xl p-5 border border-gray-800">
+            <p className="text-sm font-semibold text-gray-200 mb-3">Nota metodológica</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-400">
+              <div>
+                <p className="font-medium text-gray-300 mb-1">Método utilizado</p>
+                <p>Regressão linear simples (OLS — Mínimos Quadrados Ordinários) sobre as médias de NT_GER por edição. Equação: NT_GER = b₀ + b₁ × ano.</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-300 mb-1">Critério de inclusão</p>
+                <p>Cursos incluídos apenas se R² ≥ 0,75 e projeção resultar em valor entre 20 e 100 pts. Cursos com tendência não-linear ou inconsistente são excluídos.</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-300 mb-1">Próxima edição real</p>
+                <p>O ENADE de Computação segue ciclo trienal. A próxima edição esperada seria 2024, permitindo validar ou refutar as projeções apresentadas.</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-300 mb-1">Limitação principal</p>
+                <p>n=3 pontos no tempo. Qualquer regressão linear com 3 pontos tem R² elevado por construção — isso não representa poder preditivo real.</p>
+              </div>
+            </div>
+          </div>
         </>}
 
       </main>
