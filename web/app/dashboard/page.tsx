@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, LabelList,
   ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar,
   ComposedChart,
 } from "recharts";
@@ -610,7 +610,7 @@ export default function Dashboard() {
                   <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} domain={[0,70]}/>
                   <YAxis type="category" dataKey="nome" tick={{fill:"#9ca3af",fontSize:9}} width={200}/>
                   <Tooltip {...TT}/>
-                  <Bar dataKey="media" name="Média nota" radius={[0,4,4,0]}>{cursoData.map((_,i)=><Cell key={i} fill={CORES_GRADIENTE[i%CORES_GRADIENTE.length]}/>)}</Bar>
+                  <Bar dataKey="media" name="Média nota" radius={[0,4,4,0]}><LabelList dataKey="media" position="right" style={{fontSize:10,fill:"#9ca3af"}} formatter={(v)=>Number(v??0).toFixed(1)}/>  {cursoData.map((_,i)=><Cell key={i} fill={CORES_GRADIENTE[i%CORES_GRADIENTE.length]}/>)}</Bar>
                 </BarChart>
               </ResponsiveContainer>
             </Section>
@@ -621,8 +621,8 @@ export default function Dashboard() {
                   <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} domain={[30,65]}/>
                   <YAxis type="category" dataKey="curso" tick={{fill:"#9ca3af",fontSize:9}} width={90}/>
                   <Tooltip {...TT}/><Legend/>
-                  <Bar dataKey="publica" name="Pública"  fill="#10b981" radius={[0,4,4,0]} barSize={14}/>
-                  <Bar dataKey="privada" name="Privada"  fill="#6366f1" radius={[0,4,4,0]} barSize={14}/>
+                  <Bar dataKey="publica" name="Pública"  fill="#10b981" radius={[0,4,4,0]} barSize={14}><LabelList dataKey="publica" position="right" style={{fontSize:9,fill:"#9ca3af"}} formatter={(v)=>Number(v??0).toFixed(1)}/></Bar>
+                  <Bar dataKey="privada" name="Privada"  fill="#6366f1" radius={[0,4,4,0]} barSize={14}><LabelList dataKey="privada" position="right" style={{fontSize:9,fill:"#9ca3af"}} formatter={(v)=>Number(v??0).toFixed(1)}/></Bar>
                 </BarChart>
               </ResponsiveContainer>
             </Section>
@@ -633,9 +633,9 @@ export default function Dashboard() {
                   <XAxis dataKey="tipo" tick={{fill:"#9ca3af",fontSize:11}}/>
                   <YAxis tick={{fill:"#9ca3af",fontSize:12}} domain={[35,55]}/>
                   <Tooltip {...TT}/><Legend/>
-                  <Bar dataKey="media_fg"  name="NT_FG (Form. Geral)"      fill="#6366f1" radius={[4,4,0,0]} barSize={28}/>
-                  <Bar dataKey="media_ce"  name="NT_CE (Comp. Específico)" fill="#10b981" radius={[4,4,0,0]} barSize={28}/>
-                  <Bar dataKey="media_ger" name="NT_GER (Nota Geral)"      fill="#f59e0b" radius={[4,4,0,0]} barSize={28}/>
+                  <Bar dataKey="media_fg"  name="NT_FG (Form. Geral)"      fill="#6366f1" radius={[4,4,0,0]} barSize={28}><LabelList dataKey="media_fg"  position="top" style={{fontSize:9,fill:"#9ca3af"}} formatter={(v)=>Number(v??0).toFixed(1)}/></Bar>
+                  <Bar dataKey="media_ce"  name="NT_CE (Comp. Específico)" fill="#10b981" radius={[4,4,0,0]} barSize={28}><LabelList dataKey="media_ce"  position="top" style={{fontSize:9,fill:"#9ca3af"}} formatter={(v)=>Number(v??0).toFixed(1)}/></Bar>
+                  <Bar dataKey="media_ger" name="NT_GER (Nota Geral)"      fill="#f59e0b" radius={[4,4,0,0]} barSize={28}><LabelList dataKey="media_ger" position="top" style={{fontSize:9,fill:"#9ca3af"}} formatter={(v)=>Number(v??0).toFixed(1)}/></Bar>
                 </BarChart>
               </ResponsiveContainer>
               <p className="text-xs text-gray-500 mt-2">Tecnologia tem maior lacuna NT_FG/NT_CE — déficit no componente específico.</p>
@@ -672,9 +672,9 @@ export default function Dashboard() {
                   <XAxis dataKey="faixa" tick={{fill:"#9ca3af",fontSize:10}} angle={-30} textAnchor="end" height={40}/>
                   <YAxis tick={{fill:"#9ca3af",fontSize:11}} tickFormatter={v=>`${(v/1000).toFixed(0)}k`}/>
                   <Tooltip {...TT}/><Legend/>
-                  <Bar dataKey="2014" name="2014" fill="#6366f1" radius={[3,3,0,0]} barSize={14}/>
-                  <Bar dataKey="2017" name="2017" fill="#10b981" radius={[3,3,0,0]} barSize={14}/>
-                  <Bar dataKey="2021" name="2021" fill="#f59e0b" radius={[3,3,0,0]} barSize={14}/>
+                  <Bar dataKey="2014" name="2014" fill="#6366f1" radius={[3,3,0,0]} barSize={14}><LabelList dataKey="2014" position="top" style={{fontSize:8,fill:"#9ca3af"}} formatter={(v)=>Number(v??0)>2000?`${(Number(v??0)/1000).toFixed(0)}k`:""}/></Bar>
+                  <Bar dataKey="2017" name="2017" fill="#10b981" radius={[3,3,0,0]} barSize={14}><LabelList dataKey="2017" position="top" style={{fontSize:8,fill:"#9ca3af"}} formatter={(v)=>Number(v??0)>2000?`${(Number(v??0)/1000).toFixed(0)}k`:""}/></Bar>
+                  <Bar dataKey="2021" name="2021" fill="#f59e0b" radius={[3,3,0,0]} barSize={14}><LabelList dataKey="2021" position="top" style={{fontSize:8,fill:"#9ca3af"}} formatter={(v)=>Number(v??0)>2000?`${(Number(v??0)/1000).toFixed(0)}k`:""}/></Bar>
                 </BarChart>
               </ResponsiveContainer>
             </Section>
@@ -802,7 +802,7 @@ export default function Dashboard() {
                   <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} domain={[0,85]}/>
                   <YAxis type="category" dataKey="nome" tick={{fill:"#9ca3af",fontSize:10}} width={130}/>
                   <Tooltip {...TT}/>
-                  <Bar dataKey="media" name="Média NT_GER" radius={[0,4,4,0]}>
+                  <Bar dataKey="media" name="Média NT_GER" radius={[0,4,4,0]}><LabelList dataKey="media" position="right" style={{fontSize:10,fill:"#9ca3af"}} formatter={(v)=>Number(v??0).toFixed(1)}/> 
                     {financiamentoData.map((_,i)=><Cell key={i} fill={CORES_RENDA[i%CORES_RENDA.length]}/>)}
                   </Bar>
                 </BarChart>
@@ -815,7 +815,7 @@ export default function Dashboard() {
                   <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} domain={[0,90]}/>
                   <YAxis type="category" dataKey="nome" tick={{fill:"#9ca3af",fontSize:10}} width={170}/>
                   <Tooltip {...TT}/>
-                  <Bar dataKey="media" name="Média NT_GER" radius={[0,4,4,0]}>
+                  <Bar dataKey="media" name="Média NT_GER" radius={[0,4,4,0]}><LabelList dataKey="media" position="right" style={{fontSize:10,fill:"#9ca3af"}} formatter={(v)=>Number(v??0).toFixed(1)}/> 
                     {estadoCivilData.map((_,i)=><Cell key={i} fill={CORES_GRADIENTE[i%CORES_GRADIENTE.length]}/>)}
                   </Bar>
                 </BarChart>
@@ -833,8 +833,8 @@ export default function Dashboard() {
                   <XAxis dataKey="nome" tick={{fill:"#9ca3af",fontSize:10}} angle={-15} textAnchor="end" height={40}/>
                   <YAxis tick={{fill:"#9ca3af",fontSize:11}} domain={[0,90]}/>
                   <Tooltip {...TT}/><Legend/>
-                  <Bar dataKey="publica" name="Pública"  fill="#10b981" radius={[4,4,0,0]} barSize={22}/>
-                  <Bar dataKey="privada" name="Privada"  fill="#6366f1" radius={[4,4,0,0]} barSize={22}/>
+                  <Bar dataKey="publica" name="Pública"  fill="#10b981" radius={[4,4,0,0]} barSize={22}><LabelList dataKey="publica" position="top" style={{fontSize:9,fill:"#9ca3af"}} formatter={(v)=>Number(v??0).toFixed(1)}/></Bar>
+                  <Bar dataKey="privada" name="Privada"  fill="#6366f1" radius={[4,4,0,0]} barSize={22}><LabelList dataKey="privada" position="top" style={{fontSize:9,fill:"#9ca3af"}} formatter={(v)=>Number(v??0).toFixed(1)}/></Bar>
                 </BarChart>
               </ResponsiveContainer>
               <p className="text-xs text-gray-500 mt-2">Δ máximo entre pública e privada: {rendaVsRede.length>0?Math.max(...rendaVsRede.map(r=>Math.abs(r.delta))).toFixed(1):"—"} pts — diferença pequena em todas as faixas.</p>
@@ -846,8 +846,8 @@ export default function Dashboard() {
                   <XAxis dataKey="nome" tick={{fill:"#9ca3af",fontSize:10}} angle={-15} textAnchor="end" height={40}/>
                   <YAxis tick={{fill:"#9ca3af",fontSize:11}} domain={[0,90]}/>
                   <Tooltip {...TT}/><Legend/>
-                  <Bar dataKey="publica" name="Pública"  fill="#10b981" radius={[4,4,0,0]} barSize={22}/>
-                  <Bar dataKey="privada" name="Privada"  fill="#6366f1" radius={[4,4,0,0]} barSize={22}/>
+                  <Bar dataKey="publica" name="Pública"  fill="#10b981" radius={[4,4,0,0]} barSize={22}><LabelList dataKey="publica" position="top" style={{fontSize:9,fill:"#9ca3af"}} formatter={(v)=>Number(v??0).toFixed(1)}/></Bar>
+                  <Bar dataKey="privada" name="Privada"  fill="#6366f1" radius={[4,4,0,0]} barSize={22}><LabelList dataKey="privada" position="top" style={{fontSize:9,fill:"#9ca3af"}} formatter={(v)=>Number(v??0).toFixed(1)}/></Bar>
                 </BarChart>
               </ResponsiveContainer>
             </Section>
@@ -886,7 +886,7 @@ export default function Dashboard() {
                   <XAxis dataKey="nome" tick={{fill:"#9ca3af",fontSize:11}}/>
                   <YAxis tick={{fill:"#9ca3af",fontSize:12}} domain={[0,90]}/>
                   <Tooltip {...TT}/>
-                  <Bar dataKey="media_nota" name="Média NT_GER" radius={[4,4,0,0]}>
+                  <Bar dataKey="media_nota" name="Média NT_GER" radius={[4,4,0,0]}><LabelList dataKey="media_nota" position="top" style={{fontSize:9,fill:"#9ca3af"}} formatter={(v)=>Number(v??0).toFixed(1)}/>
                     {(racaData?.raca??[]).map((_,i)=><Cell key={i} fill={CORES_RACA_G[i%CORES_RACA_G.length]}/>)}
                   </Bar>
                 </BarChart>
@@ -1027,7 +1027,7 @@ export default function Dashboard() {
                   <XAxis type="number" tick={{fill:"#9ca3af",fontSize:11}} domain={[0,85]}/>
                   <YAxis type="category" dataKey="nome" tick={{fill:"#9ca3af",fontSize:10}} width={130}/>
                   <Tooltip {...TT}/>
-                  <Bar dataKey="media" name="Média NT_GER" radius={[0,4,4,0]}>
+                  <Bar dataKey="media" name="Média NT_GER" radius={[0,4,4,0]}><LabelList dataKey="media" position="right" style={{fontSize:10,fill:"#9ca3af"}} formatter={(v)=>Number(v??0).toFixed(1)}/> 
                     {inetData.map((_,i)=><Cell key={i} fill={CORES_RENDA[i+1<CORES_RENDA.length?i+1:i]}/>)}
                   </Bar>
                 </BarChart>
